@@ -34,3 +34,14 @@ build/
 
 # Local properties
 application-local.properties
+
+# Python
+/python-ai/.env
+/python-ai/__pycache__/
+
+# Python Virtual Environment
+/python-ai/res-chatbot/
+
+# .DS_Store
+.DS_Store
+**/.DS_Store
