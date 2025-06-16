@@ -1,0 +1,99 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+
+// --- SCSS 변수 정의 ---
+$primary-color: #007bff;
+$primary-hover: #0056b3;
+$secondary-color: #6c757d;
+$secondary-hover: #5a6268;
+$danger-color: #dc3545;
+$danger-hover: #c82333;
+$background-color: #f0f2f5;
+$white-color: white;
+$font-family: 'Noto Sans KR', sans-serif;
+
+// --- 스타일 정의 ---
+body {
+  font-family: $font-family;
+  background-color: $background-color;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.container {
+  text-align: center;
+}
+
+.card {
+  background: $white-color;
+  padding: 40px 50px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  width: 400px;
+}
+
+h1 {
+  font-weight: 700;
+  font-size: 24px;
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.subtitle {
+  color: #666;
+  margin-bottom: 30px;
+}
+
+.welcome-msg {
+  font-size: 18px;
+  margin-bottom: 30px;
+}
+
+.btn {
+  display: inline-block;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  background-color: $primary-color;
+  color: $white-color;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin: 5px;
+
+  &:hover {
+    background-color: $primary-hover;
+  }
+
+  &.btn-secondary {
+    background-color: $secondary-color;
+    &:hover {
+      background-color: $secondary-hover;
+    }
+  }
+
+  &.btn-logout {
+    background-color: $danger-color;
+    width: 100%;
+    box-sizing: border-box;
+
+    &:hover {
+      background-color: $danger-hover;
+    }
+  }
+}
+
+.menu-links a,
+.menu-links button {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.menu-links form {
+  margin-top: 5px;
+}

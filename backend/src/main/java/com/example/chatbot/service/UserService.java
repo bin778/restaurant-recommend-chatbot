@@ -10,6 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import com.example.chatbot.config.jwt.JwtTokenProvider;
+import com.example.chatbot.dto.AuthDto;
 import java.util.Collections;
 
 @Service
@@ -18,6 +20,7 @@ public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Transactional
     public void signup(UserDto.SignupRequest dto) {
@@ -37,6 +40,25 @@ public class UserService implements UserDetailsService {
                 .build();
 
         User savedUser = userRepository.save(user);
+    }
+
+    @Transactional
+    public AuthDto.LoginResponse login(AuthDto.LoginRequest dto) {
+        User user = userRepository.findByEmail(dto.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("가입되지 않은 이메일입니다."));
+
+        if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("잘못된 비밀번호입니다.");
+        }
+
+        // 로그인 성공 시 JWT 생성
+        String token = jwtTokenProvider.createToken(user.getEmail(), user.getNickname());
+
+        return AuthDto.LoginResponse.builder()
+                .grantType("Bearer")
+                .accessToken(token)
+                .nickname(user.getNickname())
+                .build();
     }
 
     @Override
