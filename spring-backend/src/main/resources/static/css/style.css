@@ -1,0 +1,86 @@
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+
+body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background-color: #f0f2f5;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.container {
+    text-align: center;
+}
+
+.card {
+    background: white;
+    padding: 40px 50px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    width: 400px;
+}
+
+h1 {
+    font-weight: 700;
+    font-size: 24px;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.subtitle {
+    color: #666;
+    margin-bottom: 30px;
+}
+
+.welcome-msg {
+    font-size: 18px;
+    margin-bottom: 30px;
+}
+
+.btn {
+    display: inline-block;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin: 5px;
+}
+
+.btn:hover {
+    background-color: #0056b3;
+}
+
+.btn-secondary {
+    background-color: #6c757d;
+}
+
+.btn-secondary:hover {
+    background-color: #5a6268;
+}
+
+.btn-logout {
+    background-color: #dc3545;
+    width: 100%; /* form 태그 안에서는 너비를 꽉 채우도록 */
+}
+
+.btn-logout:hover {
+    background-color: #c82333;
+}
+
+.menu-links a {
+    display: block;
+    width: calc(100% - 10px); /* 양쪽 마진 고려 */
+    box-sizing: border-box;
+}
+
+.menu-links form {
+    margin-top: 5px;
+}
