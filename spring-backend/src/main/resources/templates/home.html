@@ -1,23 +1,33 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
+  <meta charset="UTF-8">
   <title>맛집 추천 챗봇</title>
+  <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
-<h1>맛집 추천 챗봇에 오신 것을 환영합니다!</h1>
+<div class="container">
+  <div class="card">
+    <h1>맛집 추천 챗봇 🤖</h1>
+    <p class="subtitle">대화형으로 원하는 맛집을 찾아보세요!</p>
 
-<div sec:authorize="isAnonymous()">
-  <a th:href="@{/login}">로그인</a>
-  <a th:href="@{/signup}">회원가입</a>
-</div>
+    <div sec:authorize="isAnonymous()">
+      <a th:href="@{/login}" class="btn">로그인</a>
+      <a th:href="@{/signup}" class="btn btn-secondary">회원가입</a>
+    </div>
 
-<div sec:authorize="isAuthenticated()">
-  <p><span th:text="${username}"></span>님, 안녕하세요!</p>
-  <a th:href="@{/chat}">챗봇 시작하기</a>
-  <form th:action="@{/logout}" method="post" style="display:inline;">
-    <button type="submit">로그아웃</button>
-  </form>
+    <div sec:authorize="isAuthenticated()">
+      <p class="welcome-msg"><b th:text="${nickname}">사용자</b>님, 안녕하세요!</p>
+      <div class="menu-links">
+        <a th:href="@{/chat}" class="btn">챗봇 시작하기</a>
+        <a th:href="@{/mypage}" class="btn btn-secondary">내 정보</a>
+        <form th:action="@{/logout}" method="post" style="display: inline;">
+          <button type="submit" class="btn btn-logout">로그아웃</button>
+        </form>
+      </div>
+    </div>
+  </div>
 </div>
 </body>
 </html>
