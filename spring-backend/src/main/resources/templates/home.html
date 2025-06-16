@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="ko">
+<head>
+  <title>맛집 추천 챗봇</title>
+</head>
+<body>
+<h1>맛집 추천 챗봇에 오신 것을 환영합니다!</h1>
+
+<div sec:authorize="isAnonymous()">
+  <a th:href="@{/login}">로그인</a>
+  <a th:href="@{/signup}">회원가입</a>
+</div>
+
+<div sec:authorize="isAuthenticated()">
+  <p><span th:text="${username}"></span>님, 안녕하세요!</p>
+  <a th:href="@{/chat}">챗봇 시작하기</a>
+  <form th:action="@{/logout}" method="post" style="display:inline;">
+    <button type="submit">로그아웃</button>
+  </form>
+</div>
+</body>
+</html>
