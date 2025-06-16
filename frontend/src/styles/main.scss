@@ -1,17 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700&display=swap');
+// 공용 변수 불러오기
+@import 'variables';
 
-// --- SCSS 변수 정의 ---
-$primary-color: #007bff;
-$primary-hover: #0056b3;
-$secondary-color: #6c757d;
-$secondary-hover: #5a6268;
-$danger-color: #dc3545;
-$danger-hover: #c82333;
-$background-color: #f0f2f5;
-$white-color: white;
-$font-family: 'Noto Sans KR', sans-serif;
-
-// --- 스타일 정의 ---
+// 사이트 전체에 적용될 글로벌 스타일을 정의
 body {
   font-family: $font-family;
   background-color: $background-color;
@@ -22,9 +12,10 @@ body {
   height: 100vh;
 }
 
-.container {
-  text-align: center;
-}
+// 각 페이지/컴포넌트의 스타일을 불러온다.
+@import 'auth'; // 로그인/회원가입 폼 스타일
+// @import 'home'; // 나중에 HomePage 스타일을 분리하면 여기에 추가
+// @import 'chat'; // 나중에 ChatPage 스타일을 분리하면 여기에 추가
 
 .card {
   background: $white-color;
@@ -32,68 +23,57 @@ body {
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   width: 400px;
-}
+  text-align: center;
+  box-sizing: border-box;
 
-h1 {
-  font-weight: 700;
-  font-size: 24px;
-  margin-top: 0;
-  margin-bottom: 10px;
-}
-
-.subtitle {
-  color: #666;
-  margin-bottom: 30px;
-}
-
-.welcome-msg {
-  font-size: 18px;
-  margin-bottom: 30px;
-}
-
-.btn {
-  display: inline-block;
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
-  background-color: $primary-color;
-  color: $white-color;
-  text-decoration: none;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  margin: 5px;
-
-  &:hover {
-    background-color: $primary-hover;
+  h1 {
+    font-weight: 700;
+    font-size: 24px;
+    margin-top: 0;
+    margin-bottom: 10px;
   }
 
-  &.btn-secondary {
-    background-color: $secondary-color;
-    &:hover {
-      background-color: $secondary-hover;
-    }
+  .subtitle,
+  .welcome-msg {
+    color: #666;
+    margin-bottom: 30px;
   }
 
-  &.btn-logout {
-    background-color: $danger-color;
+  .btn {
+    display: block;
     width: 100%;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    background-color: $secondary-color;
+    color: $white-color;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin-top: 10px;
     box-sizing: border-box;
 
-    &:hover {
-      background-color: $danger-hover;
+    &.btn-primary {
+      background-color: $primary-color;
+      &:hover {
+        background-color: $primary-hover;
+      }
+    }
+
+    &.btn-secondary {
+      background-color: $secondary-color;
+      &:hover {
+        background-color: $secondary-hover;
+      }
+    }
+
+    &.btn-logout {
+      background-color: $danger-color;
+      &:hover {
+        background-color: $danger-hover;
+      }
     }
   }
-}
-
-.menu-links a,
-.menu-links button {
-  display: block;
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.menu-links form {
-  margin-top: 5px;
 }

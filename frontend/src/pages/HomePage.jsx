@@ -27,10 +27,10 @@ const HomePage = ({ user }) => {
         ) : (
           // 비로그인 상태일 때 보일 UI
           <div className="anonymous-view">
-            <a href="/login" className="btn">
+            <a href="/login" className="btn btn-primary">
               로그인
             </a>
-            <a href="/signup" className="btn btn-secondary">
+            <a href="/signup" className="btn btn-primary">
               회원가입
             </a>
           </div>

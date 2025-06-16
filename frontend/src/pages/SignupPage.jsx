@@ -1,3 +1,5 @@
+// frontend/src/pages/SignupPage.jsx
+
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import authService from '../services/authService';
@@ -25,41 +27,41 @@ const SignupPage = () => {
   };
 
   return (
-    <div className="container">
-      <div className="form-card">
-        <h1>회원가입</h1>
-        {error && <p className="error-msg">{error}</p>}
-        {message && <p className="success-msg">{message}</p>}
-        <form onSubmit={handleSignup}>
-          <div className="form-group">
-            <input type="email" placeholder="이메일" value={email} onChange={e => setEmail(e.target.value)} required />
-          </div>
-          <div className="form-group">
-            <input
-              type="password"
-              placeholder="비밀번호"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <div className="form-group">
-            <input
-              type="text"
-              placeholder="닉네임"
-              value={nickname}
-              onChange={e => setNickname(e.target.value)}
-              required
-            />
-          </div>
-          <button type="submit" className="btn">
-            회원가입
-          </button>
-        </form>
-        <div className="link-group">
-          <span>이미 계정이 있으신가요? </span>
-          <Link to="/login">로그인</Link>
+    // container 클래스는 body에 스타일이 적용되므로 최상위 div에는 필요 없습니다.
+    <div className="form-card">
+      <h1>회원가입</h1>
+      {error && <p className="error-msg">{error}</p>}
+      {message && <p className="success-msg">{message}</p>}
+      <form onSubmit={handleSignup}>
+        <div className="form-group">
+          <input type="email" placeholder="이메일" value={email} onChange={e => setEmail(e.target.value)} required />
         </div>
+        <div className="form-group">
+          <input
+            type="password"
+            placeholder="비밀번호"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <input
+            type="text"
+            placeholder="닉네임"
+            value={nickname}
+            onChange={e => setNickname(e.target.value)}
+            required
+          />
+        </div>
+        {/* 여기를 수정합니다! */}
+        <button type="submit" className="btn-auth">
+          회원가입
+        </button>
+      </form>
+      <div className="link-group">
+        <span>이미 계정이 있으신가요? </span>
+        <Link to="/login">로그인</Link>
       </div>
     </div>
   );

@@ -22,31 +22,29 @@ const LoginPage = ({ setCurrentUser }) => {
   };
 
   return (
-    <div className="container">
-      <div className="form-card">
-        <h1>로그인</h1>
-        {error && <p className="error-msg">{error}</p>}
-        <form onSubmit={handleLogin}>
-          <div className="form-group">
-            <input type="email" placeholder="이메일" value={email} onChange={e => setEmail(e.target.value)} required />
-          </div>
-          <div className="form-group">
-            <input
-              type="password"
-              placeholder="비밀번호"
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              required
-            />
-          </div>
-          <button type="submit" className="btn">
-            로그인
-          </button>
-        </form>
-        <div className="link-group">
-          <span>계정이 없으신가요? </span>
-          <Link to="/signup">회원가입</Link>
+    <div className="form-card">
+      <h1>로그인</h1>
+      {error && <p className="error-msg">{error}</p>}
+      <form onSubmit={handleLogin}>
+        <div className="form-group">
+          <input type="email" placeholder="이메일" value={email} onChange={e => setEmail(e.target.value)} required />
         </div>
+        <div className="form-group">
+          <input
+            type="password"
+            placeholder="비밀번호"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        <button type="submit" className="btn-auth">
+          로그인
+        </button>
+      </form>
+      <div className="link-group">
+        <span>계정이 없으신가요? </span>
+        <Link to="/signup">회원가입</Link>
       </div>
     </div>
   );

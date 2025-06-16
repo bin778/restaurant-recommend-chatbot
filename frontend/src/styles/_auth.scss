@@ -1,0 +1,86 @@
+// --- 로그인/회원가입 공용 폼 스타일 ---
+
+.form-card {
+  background: $white-color;
+  padding: 40px 50px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  width: 400px;
+  box-sizing: border-box;
+  text-align: center;
+
+  h1 {
+    font-weight: 700;
+    font-size: 24px;
+    margin-top: 0;
+    margin-bottom: 30px;
+  }
+}
+
+.form-group {
+  margin-bottom: 15px;
+  text-align: left;
+
+  input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box;
+    font-size: 16px;
+
+    &:focus {
+      border-color: $primary-color;
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+  }
+}
+
+// 공용 버튼 스타일 (폼 내부에서만 사용)
+.btn-auth {
+  display: block;
+  width: 100%;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  background-color: $primary-color;
+  color: $white-color;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 10px;
+
+  &:hover {
+    background-color: $primary-hover;
+  }
+}
+
+.error-msg {
+  color: $danger-color;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+.success-msg {
+  color: $success-color;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.link-group {
+  margin-top: 20px;
+  font-size: 14px;
+  color: #666;
+
+  a {
+    color: $primary-color;
+    text-decoration: none;
+    font-weight: 700;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
