@@ -1,12 +1,46 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import HomePage from './pages/HomePage';
+import LoginPage from './pages/LoginPage';
+import SignupPage from './pages/SignupPage';
+// TODO: ChatPage, MyPage 구현
+// import ChatPage from './pages/ChatPage';
+// import MyPage from './pages/MyPage';
+import authService from './services/authService';
 
 function App() {
-  // 지금은 상태가 없으므로, 하드코딩된 값으로 테스트
-  const isLoggedIn = false;
-  const user = { nickname: 'test' };
+  // localStorage에서 사용자 정보를 가져와 초기 상태로 설정
+  const [currentUser, setCurrentUser] = useState(authService.getCurrentUser());
+  const navigate = useNavigate();
 
-  return <HomePage user={isLoggedIn ? user : null} />;
+  const handleLogout = () => {
+    authService.logout();
+    setCurrentUser(null);
+    navigate('/login'); // 로그아웃 후 로그인 페이지로 이동
+  };
+
+  // PrivateRoute 컴포넌트: 로그인한 사용자만 접근 가능하도록 보호
+  const PrivateRoute = ({ children }) => {
+    const location = useLocation();
+    return currentUser ? children : <Navigate to="/login" state={{ from: location }} replace />;
+  };
+
+  return (
+    <Routes>
+      {/* 공개 경로 */}
+      <Route path="/" element={<HomePage user={currentUser} onLogout={handleLogout} />} />
+      <Route path="/login" element={<LoginPage setCurrentUser={setCurrentUser} />} />
+      <Route path="/signup" element={<SignupPage />} />
+
+      {/* 보호된 경로 (로그인 필요) */}
+      {/* <Route path="/chat" element={<PrivateRoute><ChatPage /></PrivateRoute>} />
+            <Route path="/mypage" element={<PrivateRoute><MyPage /></PrivateRoute>} /> 
+            */}
+
+      {/* 일치하는 경로가 없을 경우 홈으로 리다이렉트 */}
+      <Route path="*" element={<Navigate to="/" />} />
+    </Routes>
+  );
 }
 
 export default App;
