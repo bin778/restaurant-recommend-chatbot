@@ -1,10 +1,10 @@
-// 공용 변수 불러오기
-@import 'variables';
+@use 'variables';
+@use 'auth';
 
-// 사이트 전체에 적용될 글로벌 스타일을 정의
+// 글로벌 스타일 정의
 body {
-  font-family: $font-family;
-  background-color: $background-color;
+  font-family: variables.$font-family;
+  background-color: variables.$background-color;
   margin: 0;
   display: flex;
   justify-content: center;
@@ -12,13 +12,9 @@ body {
   height: 100vh;
 }
 
-// 각 페이지/컴포넌트의 스타일을 불러온다.
-@import 'auth'; // 로그인/회원가입 폼 스타일
-// @import 'home'; // 나중에 HomePage 스타일을 분리하면 여기에 추가
-// @import 'chat'; // 나중에 ChatPage 스타일을 분리하면 여기에 추가
-
+// 홈페이지 스타일
 .card {
-  background: $white-color;
+  background: variables.$white-color;
   padding: 40px 50px;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
@@ -45,34 +41,33 @@ body {
     padding: 12px 24px;
     border: none;
     border-radius: 8px;
-    background-color: $secondary-color;
-    color: $white-color;
+    color: variables.$white-color;
     text-decoration: none;
     font-size: 16px;
     font-weight: 700;
     cursor: pointer;
     transition: background-color 0.2s;
-    margin-top: 10px;
+    margin-top: 5px;
     box-sizing: border-box;
 
     &.btn-primary {
-      background-color: $primary-color;
+      background-color: variables.$primary-color;
       &:hover {
-        background-color: $primary-hover;
+        background-color: variables.$primary-hover;
       }
     }
 
     &.btn-secondary {
-      background-color: $secondary-color;
+      background-color: variables.$secondary-color;
       &:hover {
-        background-color: $secondary-hover;
+        background-color: variables.$secondary-hover;
       }
     }
 
     &.btn-logout {
-      background-color: $danger-color;
+      background-color: variables.$danger-color;
       &:hover {
-        background-color: $danger-hover;
+        background-color: variables.$danger-hover;
       }
     }
   }

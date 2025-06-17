@@ -1,7 +1,9 @@
+@use 'variables';
+
 // --- 로그인/회원가입 공용 폼 스타일 ---
 
 .form-card {
-  background: $white-color;
+  background: variables.$white-color;
   padding: 40px 50px;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
@@ -30,22 +32,21 @@
     font-size: 16px;
 
     &:focus {
-      border-color: $primary-color;
+      border-color: variables.$primary-color;
       outline: none;
       box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
     }
   }
 }
 
-// 공용 버튼 스타일 (폼 내부에서만 사용)
 .btn-auth {
   display: block;
   width: 100%;
   padding: 12px 24px;
   border: none;
   border-radius: 8px;
-  background-color: $primary-color;
-  color: $white-color;
+  background-color: variables.$primary-color;
+  color: variables.$white-color;
   text-decoration: none;
   font-size: 16px;
   font-weight: 700;
@@ -54,17 +55,18 @@
   margin-top: 10px;
 
   &:hover {
-    background-color: $primary-hover;
+    background-color: variables.$primary-hover;
   }
 }
 
 .error-msg {
-  color: $danger-color;
+  color: variables.$danger-color;
   margin-bottom: 15px;
   font-size: 14px;
 }
+
 .success-msg {
-  color: $success-color;
+  color: variables.$success-color;
   margin-bottom: 15px;
   font-size: 14px;
 }
@@ -75,7 +77,7 @@
   color: #666;
 
   a {
-    color: $primary-color;
+    color: variables.$primary-color;
     text-decoration: none;
     font-weight: 700;
 
