@@ -1,5 +1,3 @@
-// frontend/src/pages/SignupPage.jsx
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import authService from '../services/authService';
@@ -19,15 +17,19 @@ const SignupPage = () => {
     try {
       await authService.signup(email, password, nickname);
       setMessage('회원가입에 성공했습니다! 로그인 페이지로 이동합니다.');
-      setTimeout(() => navigate('/login'), 2000); // 2초 후 로그인 페이지로 이동
+      setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
-      setError('회원가입에 실패했습니다. 이미 사용 중인 이메일일 수 있습니다.');
+      // 백엔드에서 보낸 에러 메시지를 상태에 저장
+      if (err.response && err.response.data) {
+        setError(err.response.data);
+      } else {
+        setError('회원가입 중 오류가 발생했습니다.');
+      }
       console.error('Signup error:', err);
     }
   };
 
   return (
-    // container 클래스는 body에 스타일이 적용되므로 최상위 div에는 필요 없습니다.
     <div className="form-card">
       <h1>회원가입</h1>
       {error && <p className="error-msg">{error}</p>}
@@ -54,7 +56,6 @@ const SignupPage = () => {
             required
           />
         </div>
-        {/* 여기를 수정합니다! */}
         <button type="submit" className="btn-auth">
           회원가입
         </button>
