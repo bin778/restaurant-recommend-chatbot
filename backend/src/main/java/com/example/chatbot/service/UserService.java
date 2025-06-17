@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.regex.Pattern;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +21,9 @@ public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    // 비밀번호 정책을 위한 정규식 (최소 8자, 영문과 숫자를 최소 하나씩 포함)
+    private static final String PASSWORD_REGEX = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$";
+
     @Transactional
     public Long signup(UserDto.SignupRequest dto) {
         if (userRepository.findByEmail(dto.getEmail()).isPresent()) {
@@ -27,6 +31,11 @@ public class UserService implements UserDetailsService {
         }
         if (userRepository.findByNickname(dto.getNickname()).isPresent()) {
             throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
+        }
+
+        // --- 비밀번호 유효성 검사 로직 추가 ---
+        if (!Pattern.matches(PASSWORD_REGEX, dto.getPassword())) {
+            throw new IllegalArgumentException("비밀번호는 8자 이상이어야 하며, 영문과 숫자를 모두 포함해야 합니다.");
         }
 
         User user = User.builder()
@@ -49,3 +58,4 @@ public class UserService implements UserDetailsService {
                 Collections.singletonList(() -> user.getRole()));
     }
 }
+

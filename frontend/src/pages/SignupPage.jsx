@@ -14,12 +14,19 @@ const SignupPage = () => {
     e.preventDefault();
     setError('');
     setMessage('');
+
+    // 클라이언트 사이드 비밀번호 유효성 검사 로직 추가
+    const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d).{8,}$/;
+    if (!passwordRegex.test(password)) {
+      setError('비밀번호는 8자 이상, 영문과 숫자를 포함해야 합니다.');
+      return; // API 요청을 보내지 않고 함수 종료
+    }
+
     try {
       await authService.signup(email, password, nickname);
       setMessage('회원가입에 성공했습니다! 로그인 페이지로 이동합니다.');
       setTimeout(() => navigate('/login'), 2000);
     } catch (err) {
-      // 백엔드에서 보낸 에러 메시지를 상태에 저장
       if (err.response && err.response.data) {
         setError(err.response.data);
       } else {
