@@ -5,10 +5,10 @@ import LoginPage from './pages/LoginPage';
 import SignupPage from './pages/SignupPage';
 import authService from './services/authService';
 // TODO: ChatPage, MyPage 구현
+// TODO: Front-End 부분을 TypeScript로 코드 변환
 // import ChatPage from './pages/ChatPage';
 // import MyPage from './pages/MyPage';
 
-// TODO: 로그인 안됨 수정해야 함: AxioxError 발생 -> POST 접근 차단 문제
 function App() {
   // localStorage에서 사용자 정보를 가져와 초기 상태로 설정
   const [currentUser, setCurrentUser] = useState(authService.getCurrentUser());
@@ -30,18 +30,13 @@ function App() {
 
   return (
     <Routes>
-      {/* 각 페이지 컴포넌트에 필요한 상태와 함수를 props로 전달
-              - HomePage: user, onLogout
-              - LoginPage: setCurrentUser
-            */}
       <Route path="/" element={<HomePage user={currentUser} onLogout={handleLogout} />} />
       <Route path="/login" element={<LoginPage setCurrentUser={setCurrentUser} />} />
       <Route path="/signup" element={<SignupPage />} />
 
       {/* TODO: 챗봇, 마이페이지 라우트 추가 예정 */}
-      {/* <Route path="/chat" element={<PrivateRoute><ChatPage /></PrivateRoute>} />
-            <Route path="/mypage" element={<PrivateRoute><MyPage /></PrivateRoute>} /> 
-            */}
+      {/* <Route path="/chat" element={<PrivateRoute><ChatPage /></PrivateRoute>} /> */}
+      {/* <Route path="/mypage" element={<PrivateRoute><MyPage /></PrivateRoute>} /> */}
 
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>

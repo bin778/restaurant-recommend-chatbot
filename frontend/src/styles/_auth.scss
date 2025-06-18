@@ -1,4 +1,5 @@
 @use 'variables';
+@use 'mixins';
 
 // --- 로그인/회원가입 공용 폼 스타일 ---
 
@@ -16,6 +17,27 @@
     font-size: 24px;
     margin-top: 0;
     margin-bottom: 30px;
+  }
+
+  // --- 반응형 스타일 적용 ---
+  @include mixins.tablet {
+    border-radius: 10px;
+    width: 350px;
+    padding: 35px 45px;
+
+    h1 {
+      font-size: 20px;
+    }
+  }
+
+  @include mixins.mobile {
+    border-radius: 8px;
+    width: 300px;
+    padding: 30px 40px;
+
+    h1 {
+      font-size: 16px;
+    }
   }
 }
 
@@ -35,6 +57,27 @@
       border-color: variables.$primary-color;
       outline: none;
       box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+    }
+  }
+
+  // --- 반응형 스타일 적용 ---
+  @include mixins.tablet {
+    margin-bottom: 13px;
+
+    input {
+      padding: 10px;
+      border-radius: 7px;
+      font-size: 14px;
+    }
+  }
+
+  @include mixins.mobile {
+    margin-bottom: 10px;
+
+    input {
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 12px;
     }
   }
 }
@@ -57,18 +100,35 @@
   &:hover {
     background-color: variables.$primary-hover;
   }
+
+  // --- 반응형 스타일 적용 ---
+  @include mixins.tablet {
+    padding: 10px 20px;
+    border-radius: 7px;
+    font-size: 14px;
+    margin-top: 8px;
+  }
+
+  @include mixins.mobile {
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-size: 12px;
+    margin-top: 5px;
+  }
+}
+
+.error-msg,
+.success-msg {
+  margin-bottom: 15px;
+  font-size: 14px;
 }
 
 .error-msg {
   color: variables.$danger-color;
-  margin-bottom: 15px;
-  font-size: 14px;
 }
 
 .success-msg {
   color: variables.$success-color;
-  margin-bottom: 15px;
-  font-size: 14px;
 }
 
 .link-group {
@@ -84,5 +144,16 @@
     &:hover {
       text-decoration: underline;
     }
+  }
+
+  // --- 반응형 스타일 적용 ---
+  @include mixins.tablet {
+    margin-top: 17px;
+    font-size: 12px;
+  }
+
+  @include mixins.mobile {
+    margin-top: 14px;
+    font-size: 10px;
   }
 }
