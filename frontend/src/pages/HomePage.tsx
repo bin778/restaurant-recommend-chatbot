@@ -1,8 +1,14 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
+import type { User } from '../types'; // 공용 User 타입 임포트
 
-// App.jsx로부터 user 정보와 onLogout 함수를 props로 전달받음
-const HomePage = ({ user, onLogout }) => {
+// HomePage 컴포넌트가 받을 props의 타입을 정의
+interface HomePageProps {
+  user: User | null; // user는 User 타입이거나 null일 수 있음
+  onLogout: () => void; // onLogout은 파라미터와 반환값이 없는 함수
+}
+
+const HomePage: React.FC<HomePageProps> = ({ user, onLogout }) => {
   return (
     <div className="card">
       <h1>맛집 추천 챗봇 🤖</h1>

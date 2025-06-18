@@ -1,31 +1,37 @@
 import React, { useState } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import HomePage from './pages/HomePage';
-import LoginPage from './pages/LoginPage';
-import SignupPage from './pages/SignupPage';
+import HomePage from './pages/HomePage.tsx';
+import LoginPage from './pages/LoginPage.tsx';
+import SignupPage from './pages/SignupPage.tsx';
 import authService from './services/authService';
+import type { User } from './types'; // 공용 User 타입 임포트
 // TODO: ChatPage, MyPage 구현
-// TODO: Front-End 부분을 TypeScript로 코드 변환
 // import ChatPage from './pages/ChatPage';
 // import MyPage from './pages/MyPage';
 
-function App() {
+// PrivateRoute 컴포넌트가 받을 props의 타입을 정의
+interface PrivateRouteProps {
+  children: React.ReactNode;
+}
+
+const App: React.FC = () => {
   // localStorage에서 사용자 정보를 가져와 초기 상태로 설정
-  const [currentUser, setCurrentUser] = useState(authService.getCurrentUser());
+  // currentUser 상태는 User 타입 또는 null일 수 있음을 명시
+  const [currentUser, setCurrentUser] = useState<User | null>(authService.getCurrentUser());
   const navigate = useNavigate();
 
   // 로그아웃 처리 함수
-  const handleLogout = () => {
+  const handleLogout = (): void => {
     authService.logout();
     setCurrentUser(null);
     navigate('/login'); // 로그아웃 후 로그인 페이지로 강제 이동
   };
 
   // PrivateRoute: 로그인이 필요한 페이지를 보호하는 컴포넌트
-  const PrivateRoute = ({ children }) => {
+  const PrivateRoute: React.FC<PrivateRouteProps> = ({ children }) => {
     const location = useLocation();
     // currentUser가 없으면 로그인 페이지로 리다이렉트
-    return currentUser ? children : <Navigate to="/login" state={{ from: location }} replace />;
+    return currentUser ? <>{children}</> : <Navigate to="/login" state={{ from: location }} replace />;
   };
 
   return (
@@ -35,12 +41,13 @@ function App() {
       <Route path="/signup" element={<SignupPage />} />
 
       {/* TODO: 챗봇, 마이페이지 라우트 추가 예정 */}
-      {/* <Route path="/chat" element={<PrivateRoute><ChatPage /></PrivateRoute>} /> */}
-      {/* <Route path="/mypage" element={<PrivateRoute><MyPage /></PrivateRoute>} /> */}
+      {/* <Route path="/chat" element={<PrivateRoute><ChatPage /></PrivateRoute>} />
+      <Route path="/mypage" element={<PrivateRoute><MyPage /></PrivateRoute>} />
+      */}
 
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );
-}
+};
 
 export default App;

@@ -2,31 +2,34 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import authService from '../services/authService';
 
-const SignupPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [nickname, setNickname] = useState('');
-  const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
+const SignupPage: React.FC = () => {
+  // 각 state가 문자열(string) 타입임을 명시
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [nickname, setNickname] = useState<string>('');
+  const [error, setError] = useState<string>('');
+  const [message, setMessage] = useState<string>('');
   const navigate = useNavigate();
 
-  const handleSignup = async e => {
+  // 이벤트 객체(e)의 타입을 명시
+  const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     setMessage('');
 
-    // 클라이언트 사이드 비밀번호 유효성 검사 로직 추가
     const passwordRegex = /^(?=.*[a-zA-Z])(?=.*\d).{8,}$/;
     if (!passwordRegex.test(password)) {
       setError('비밀번호는 8자 이상, 영문과 숫자를 포함해야 합니다.');
-      return; // API 요청을 보내지 않고 함수 종료
+      return;
     }
 
     try {
-      await authService.signup(email, password, nickname);
+      // authService에 정의된 타입에 맞게 객체로 전달
+      await authService.signup({ email, password, nickname });
       setMessage('회원가입에 성공했습니다! 로그인 페이지로 이동합니다.');
       setTimeout(() => navigate('/login'), 2000);
-    } catch (err) {
+    } catch (err: any) {
+      // 에러 객체는 타입이 다양할 수 있어 any로 처리
       if (err.response && err.response.data) {
         setError(err.response.data);
       } else {
@@ -43,11 +46,19 @@ const SignupPage = () => {
       {message && <p className="success-msg">{message}</p>}
       <form onSubmit={handleSignup}>
         <div className="form-group">
-          <input type="email" placeholder="이메일" value={email} onChange={e => setEmail(e.target.value)} required />
+          <input
+            type="email"
+            id="signup-email"
+            placeholder="이메일"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+          />
         </div>
         <div className="form-group">
           <input
             type="password"
+            id="signup-password"
             placeholder="비밀번호"
             value={password}
             onChange={e => setPassword(e.target.value)}
@@ -57,6 +68,7 @@ const SignupPage = () => {
         <div className="form-group">
           <input
             type="text"
+            id="signup-nickname"
             placeholder="닉네임"
             value={nickname}
             onChange={e => setNickname(e.target.value)}

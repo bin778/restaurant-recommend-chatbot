@@ -1,22 +1,32 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import authService from '../services/authService';
+import type { User } from '../types';
 
-const LoginPage = ({ setCurrentUser }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+// 컴포넌트가 받을 props의 타입을 정의
+interface LoginPageProps {
+  setCurrentUser: (user: User) => void;
+}
+
+const LoginPage: React.FC<LoginPageProps> = ({ setCurrentUser }) => {
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [error, setError] = useState<string>('');
   const navigate = useNavigate();
 
-  const handleLogin = async e => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
     try {
-      const userData = await authService.login(email, password);
-      setCurrentUser(userData); // App의 상태 업데이트
-      navigate('/'); // 로그인 성공 시 홈으로 이동
-    } catch (err) {
-      setError('이메일 또는 비밀번호가 올바르지 않습니다.');
+      const userData = await authService.login({ email, password });
+      setCurrentUser(userData);
+      navigate('/');
+    } catch (err: any) {
+      if (err.response && err.response.data) {
+        setError(err.response.data);
+      } else {
+        setError('로그인 중 오류가 발생했습니다.');
+      }
       console.error('Login error:', err);
     }
   };
@@ -27,11 +37,19 @@ const LoginPage = ({ setCurrentUser }) => {
       {error && <p className="error-msg">{error}</p>}
       <form onSubmit={handleLogin}>
         <div className="form-group">
-          <input type="email" placeholder="이메일" value={email} onChange={e => setEmail(e.target.value)} required />
+          <input
+            type="email"
+            id="login-email"
+            placeholder="이메일"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+          />
         </div>
         <div className="form-group">
           <input
             type="password"
+            id="login-password"
             placeholder="비밀번호"
             value={password}
             onChange={e => setPassword(e.target.value)}

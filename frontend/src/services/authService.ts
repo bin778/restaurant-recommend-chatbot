@@ -1,39 +1,40 @@
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import type { User, SignupData, LoginData } from '../types'; // 정의한 타입 임포트
 
 const API_URL = '/api/auth/';
 
-const signup = (email, password, nickname) => {
-  // try-catch 블록을 호출하는 컴포넌트 쪽으로 이동시켜, axios가 던지는 에러를 직접 처리할 수 있게 한다.
-  return axios.post(API_URL + 'signup', {
-    email,
-    password,
-    nickname,
-  });
+// 회원가입 요청
+const signup = (data: SignupData): Promise<void> => {
+  return axios.post(API_URL + 'signup', data);
 };
 
-const login = async (email, password) => {
-  const response = await axios.post(API_URL + 'login', { email, password });
+// 로그인 요청
+const login = async (data: LoginData): Promise<User> => {
+  const response = await axios.post<User>(API_URL + 'login', data);
   if (response.data.accessToken) {
     localStorage.setItem('user', JSON.stringify(response.data));
   }
   return response.data;
 };
 
-// ... (logout, getCurrentUser는 기존과 동일)
-const logout = () => {
+// 로그아웃
+const logout = (): void => {
   localStorage.removeItem('user');
 };
 
-const getCurrentUser = () => {
+// 현재 로그인된 사용자 정보 가져오기
+const getCurrentUser = (): User | null => {
   const userStr = localStorage.getItem('user');
   if (!userStr) {
     return null;
   }
+
   try {
-    const user = JSON.parse(userStr);
+    const user: User = JSON.parse(userStr);
     const decodedJwt = jwtDecode(user.accessToken);
-    if (decodedJwt.exp * 1000 < Date.now()) {
+
+    if (decodedJwt.exp && decodedJwt.exp * 1000 < Date.now()) {
       logout();
       return null;
     }
