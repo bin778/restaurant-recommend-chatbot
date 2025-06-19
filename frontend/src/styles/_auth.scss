@@ -2,13 +2,8 @@
 @use 'mixins';
 @use 'base';
 
-// --- 로그인/회원가입 공용 폼 스타일 ---
 .form-card {
-  @extend %card-base;
-
-  @include mixins.mobile {
-    background-color: variables.$background-color;
-  }
+  @extend %card-base; // 공용 카드 스타일 상속
 }
 
 .form-group {
@@ -29,61 +24,13 @@
       box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
     }
   }
-
-  // --- 반응형 스타일 적용 ---
-  @include mixins.tablet {
-    margin-bottom: 13px;
-
-    input {
-      padding: 10px;
-      border-radius: 7px;
-      font-size: 14px;
-    }
-  }
-
-  @include mixins.mobile {
-    margin-bottom: 10px;
-
-    input {
-      padding: 8px;
-      border-radius: 6px;
-      font-size: 12px;
-    }
-  }
 }
 
 .btn-auth {
-  display: block;
-  width: 100%;
-  padding: 12px 24px;
-  border: none;
-  border-radius: 8px;
+  @include mixins.button-base;
   background-color: variables.$primary-color;
-  color: variables.$white-color;
-  text-decoration: none;
-  font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: background-color 0.2s;
-  margin-top: 10px;
-
   &:hover {
     background-color: variables.$primary-hover;
-  }
-
-  // --- 반응형 스타일 적용 ---
-  @include mixins.tablet {
-    padding: 10px 20px;
-    border-radius: 7px;
-    font-size: 14px;
-    margin-top: 8px;
-  }
-
-  @include mixins.mobile {
-    padding: 8px 16px;
-    border-radius: 6px;
-    font-size: 12px;
-    margin-top: 5px;
   }
 }
 
@@ -96,7 +43,6 @@
 .error-msg {
   color: variables.$danger-color;
 }
-
 .success-msg {
   color: variables.$success-color;
 }
@@ -105,25 +51,12 @@
   margin-top: 20px;
   font-size: 14px;
   color: #666;
-
   a {
     color: variables.$primary-color;
     text-decoration: none;
     font-weight: 700;
-
     &:hover {
       text-decoration: underline;
     }
-  }
-
-  // --- 반응형 스타일 적용 ---
-  @include mixins.tablet {
-    margin-top: 17px;
-    font-size: 12px;
-  }
-
-  @include mixins.mobile {
-    margin-top: 14px;
-    font-size: 14px;
   }
 }

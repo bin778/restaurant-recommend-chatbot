@@ -1,7 +1,7 @@
 @use 'variables';
 @use 'mixins';
-@use 'auth';
 @use 'base';
+@use 'auth';
 @use 'mypage';
 
 // --- 글로벌 스타일 ---
@@ -15,13 +15,12 @@ body {
   min-height: 100vh;
   box-sizing: border-box;
 
-  // 모바일에서는 body의 여백을 없애서 카드가 화면을 꽉 채우게 함
   @include mixins.mobile {
     padding: 0;
   }
 }
 
-// 홈페이지 스타일
+// --- 홈페이지 스타일 ---
 .card {
   @extend %card-base;
 
@@ -29,85 +28,34 @@ body {
   .welcome-msg {
     color: #666;
     margin-bottom: 30px;
-  }
 
-  .btn {
-    display: block;
-    width: 100%;
-    padding: 12px 24px;
-    border: none;
-    border-radius: 8px;
-    color: variables.$white-color;
-    text-decoration: none;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: background-color 0.2s;
-    margin-top: 5px;
-    box-sizing: border-box;
-
-    &.btn-primary {
-      background-color: variables.$primary-color;
-      &:hover {
-        background-color: variables.$primary-hover;
-      }
-    }
-
-    &.btn-secondary {
-      background-color: variables.$secondary-color;
-      &:hover {
-        background-color: variables.$secondary-hover;
-      }
-    }
-
-    &.btn-logout {
-      background-color: variables.$danger-color;
-      &:hover {
-        background-color: variables.$danger-hover;
-      }
+    @include mixins.mobile {
+      margin-bottom: 10px;
     }
   }
 
-  // --- 반응형 스타일 적용 ---
-  @include mixins.tablet {
-    border-radius: 10px;
-    width: 350px;
-    padding: 35px 45px;
-
-    h1 {
-      font-size: 20px;
-    }
-
-    .subtitle,
-    .welcome-msg {
-      font-size: 14px;
-      margin-bottom: 25px;
-    }
-
-    .btn {
-      padding: 10px 20px;
-      border-radius: 7px;
-      font-size: 14px;
-      margin-top: 5px;
+  // 홈페이지 전용 버튼들
+  .btn-primary {
+    @include mixins.button-base;
+    background-color: variables.$primary-color;
+    &:hover {
+      background-color: variables.$primary-hover;
     }
   }
 
-  @include mixins.mobile {
-    background-color: variables.$background-color;
-    width: 100%;
-
-    h1 {
-      font-size: 28px;
+  .btn-secondary {
+    @include mixins.button-base;
+    background-color: variables.$secondary-color;
+    &:hover {
+      background-color: variables.$secondary-hover;
     }
+  }
 
-    .subtitle,
-    .welcome-msg {
-      font-size: 20px;
-      margin-bottom: 16px;
-    }
-
-    .btn {
-      margin-top: 10px;
+  .btn-logout {
+    @include mixins.button-base;
+    background-color: variables.$danger-color;
+    &:hover {
+      background-color: variables.$danger-hover;
     }
   }
 }

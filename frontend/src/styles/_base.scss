@@ -1,12 +1,13 @@
 @use 'variables';
 @use 'mixins';
 
+// --- 카드 UI의 모든 공통 속성을 담는 플레이스홀더 ---
 %card-base {
-  // 데스크탑 & 태블릿 공통 기본 스타일
   background: variables.$white-color;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
   width: 400px;
+  max-width: 100%;
   padding: 40px 50px;
   box-sizing: border-box;
   text-align: center;
@@ -18,24 +19,23 @@
     margin-bottom: 30px;
   }
 
-  // --- 태블릿 반응형 ---
+  // 반응형 스타일
   @include mixins.tablet {
+    width: 350px;
     padding: 35px 45px;
+    h1 {
+      font-size: 20px;
+    }
   }
 
-  // --- 모바일 반응형 ---
   @include mixins.mobile {
-    width: 350px !important;
     min-height: 100vh;
     border-radius: 0;
     box-shadow: none;
-    padding: 20px 25px;
-
-    // 컨텐츠를 중앙에 배치하기 위한 Flexbox 설정
+    padding: 40px 25px;
     display: flex;
     flex-direction: column;
     justify-content: center;
-
     h1 {
       font-size: 28px;
     }

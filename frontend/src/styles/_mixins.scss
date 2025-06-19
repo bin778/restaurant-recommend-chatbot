@@ -1,13 +1,31 @@
-// 태블릿 사이즈: 768px ~ 1023px
+@use 'variables';
+
+// --- 반응형 분기점 ---
 @mixin tablet {
   @media (max-width: 1023px) {
     @content;
   }
 }
 
-// 모바일 사이즈: ~ 767px
 @mixin mobile {
   @media (max-width: 767px) {
     @content;
   }
+}
+
+// --- 버튼 스타일 공유를 위한 믹스인 ---
+@mixin button-base {
+  display: block;
+  width: 100%;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  margin-top: 10px;
+  box-sizing: border-box;
+  color: variables.$white-color;
 }

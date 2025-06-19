@@ -1,5 +1,6 @@
-@use 'base';
 @use 'variables';
+@use 'mixins';
+@use 'base';
 
 .mypage-card {
   @extend %card-base;
@@ -8,46 +9,53 @@
     text-align: left;
   }
 
-  h2 {
-    font-size: 18px;
-    margin-top: 25px;
-    margin-bottom: 20px;
+  .info-grid {
+    margin: 30px 0;
+  }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 0;
     border-bottom: 1px solid #eee;
-    padding-bottom: 10px;
-  }
 
-  .email-display {
-    padding: 15px;
-    background-color: #f8f9fa;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    color: #555;
-  }
-
-  .mypage-form {
-    label {
-      display: block;
-      margin-bottom: 5px;
-      font-weight: 700;
-      font-size: 14px;
+    &:first-child {
+      padding-top: 0;
+    }
+    &:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
     }
   }
 
-  .divider {
-    border: none;
-    border-top: 1px solid #eee;
-    margin: 40px 0;
+  .info-label {
+    font-weight: 700;
+    color: #555;
+  }
+  .info-value {
+    color: #333;
   }
 
   .button-group {
-    margin-top: 30px;
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px; // 버튼 사이 간격
   }
 
-  // 버튼 색상 추가
-  .btn.btn-danger {
-    background-color: variables.$danger-color;
-    &:hover {
-      background-color: variables.$danger-hover;
+  @include mixins.mobile {
+    .button-group {
+      margin-top: 10px;
+      gap: 5px;
     }
+  }
+}
+
+// DeleteAccountPage에서만 사용하는 버튼 스타일
+.btn-danger {
+  @include mixins.button-base;
+  background-color: variables.$danger-color;
+  &:hover {
+    background-color: variables.$danger-hover;
   }
 }

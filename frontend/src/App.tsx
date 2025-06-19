@@ -4,6 +4,8 @@ import HomePage from './pages/HomePage.tsx';
 import LoginPage from './pages/LoginPage.tsx';
 import SignupPage from './pages/SignupPage.tsx';
 import MyPage from './pages/MyPage.tsx';
+import UpdateProfilePage from './pages/UpdateProfilePage.tsx';
+import DeleteAccountPage from './pages/DeleteAccountPage.tsx';
 import authService from './services/authService';
 import type { User } from './types'; // 공용 User 타입 임포트
 // TODO: ChatPage 구현
@@ -39,6 +41,8 @@ const App: React.FC = () => {
       <Route path="/" element={<HomePage user={currentUser} onLogout={handleLogout} />} />
       <Route path="/login" element={<LoginPage setCurrentUser={setCurrentUser} />} />
       <Route path="/signup" element={<SignupPage />} />
+
+      {/* 보호된 라우트들 */}
       <Route
         path="/mypage"
         element={
@@ -47,9 +51,24 @@ const App: React.FC = () => {
           </PrivateRoute>
         }
       />
-      {/* TODO: 챗봇 라우트 추가 예정 */}x
-      {/* <Route path="/chat" element={<PrivateRoute><ChatPage /></PrivateRoute>} />
-       */}
+      <Route
+        path="/update-profile"
+        element={
+          <PrivateRoute>
+            <UpdateProfilePage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/delete-account"
+        element={
+          <PrivateRoute>
+            <DeleteAccountPage />
+          </PrivateRoute>
+        }
+      />
+
+      {/* <Route path="/chat" element={<PrivateRoute><ChatPage /></PrivateRoute>} /> */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );

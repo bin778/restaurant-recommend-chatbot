@@ -1,6 +1,6 @@
 import axios from 'axios';
 import authHeader from './authHeader';
-import type { UserInfo, UpdateProfileData, DeleteAccountData } from '../types';
+import type { UpdateProfileData, DeleteAccountData } from '../types';
 
 const API_URL = '/api/users/';
 
