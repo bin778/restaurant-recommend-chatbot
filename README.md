@@ -66,6 +66,26 @@
 
 <br/>
 
+## 🏗️ 시스템 아키텍처
+
+**[프론트엔드 아키텍처]**
+
+![image](https://github.com/user-attachments/assets/86394f3b-36b5-4734-9a49-d39e1b7894fc)
+
+**[백엔드 아키텍처]**
+
+![image](https://github.com/user-attachments/assets/63679876-2e77-4999-8374-1b410dff5e49)
+
+**[Python LLM 서버 아키텍처]**
+
+![image](https://github.com/user-attachments/assets/9a0adc0b-4db4-44ae-a319-7148e74302b1)
+
+**[전체 시스템 흐름도 아키텍처]**
+
+![image](https://github.com/user-attachments/assets/b955f14a-9e1d-43e3-a733-cc2bebdfbebb)
+
+<br/>
+
 ## 🚀 프로젝트 실행 방법
 
 ### 1. 사전 요구사항
