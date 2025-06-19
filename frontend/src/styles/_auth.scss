@@ -1,43 +1,13 @@
 @use 'variables';
 @use 'mixins';
+@use 'base';
 
 // --- 로그인/회원가입 공용 폼 스타일 ---
-
 .form-card {
-  background: variables.$white-color;
-  padding: 40px 50px;
-  border-radius: 12px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  width: 400px;
-  box-sizing: border-box;
-  text-align: center;
-
-  h1 {
-    font-weight: 700;
-    font-size: 24px;
-    margin-top: 0;
-    margin-bottom: 30px;
-  }
-
-  // --- 반응형 스타일 적용 ---
-  @include mixins.tablet {
-    border-radius: 10px;
-    width: 350px;
-    padding: 35px 45px;
-
-    h1 {
-      font-size: 20px;
-    }
-  }
+  @extend %card-base;
 
   @include mixins.mobile {
-    border-radius: 8px;
-    width: 300px;
-    padding: 30px 40px;
-
-    h1 {
-      font-size: 16px;
-    }
+    background-color: variables.$background-color;
   }
 }
 
@@ -154,6 +124,6 @@
 
   @include mixins.mobile {
     margin-top: 14px;
-    font-size: 10px;
+    font-size: 14px;
   }
 }
