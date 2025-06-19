@@ -22,8 +22,8 @@ public class UserService implements UserDetailsService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    // 비밀번호 정책을 위한 정규식 (최소 8자, 영문과 숫자를 최소 하나씩 포함)
-    private static final String PASSWORD_REGEX = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{8,}$";
+    // 비밀번호 정책 정규식: 최소 8자, 영문과 숫자는 최소 하나씩 포함 (특수문자 허용)
+    private static final String PASSWORD_REGEX = "^(?=.*[A-Za-z])(?=.*\\d).{8,}$";
 
     @Transactional
     public Long signup(UserDto.SignupRequest dto) {
