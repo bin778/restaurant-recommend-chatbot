@@ -25,10 +25,11 @@
 
   // --- 모바일 반응형 ---
   @include mixins.mobile {
+    width: 350px !important;
     min-height: 100vh;
     border-radius: 0;
     box-shadow: none;
-    padding: 40px 25px;
+    padding: 20px 25px;
 
     // 컨텐츠를 중앙에 배치하기 위한 Flexbox 설정
     display: flex;

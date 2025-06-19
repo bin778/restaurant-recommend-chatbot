@@ -57,5 +57,11 @@ public class UserService implements UserDetailsService {
                 user.getPassword(),
                 Collections.singletonList(() -> user.getRole()));
     }
+
+    // 이메일로 User 엔티티를 찾는 public 메서드 추가
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("해당 이메일의 사용자를 찾을 수 없습니다: " + email));
+    }
 }
 

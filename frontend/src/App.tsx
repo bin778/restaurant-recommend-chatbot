@@ -3,11 +3,11 @@ import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-
 import HomePage from './pages/HomePage.tsx';
 import LoginPage from './pages/LoginPage.tsx';
 import SignupPage from './pages/SignupPage.tsx';
+import MyPage from './pages/MyPage.tsx';
 import authService from './services/authService';
 import type { User } from './types'; // 공용 User 타입 임포트
-// TODO: ChatPage, MyPage 구현
+// TODO: ChatPage 구현
 // import ChatPage from './pages/ChatPage';
-// import MyPage from './pages/MyPage';
 
 // PrivateRoute 컴포넌트가 받을 props의 타입을 정의
 interface PrivateRouteProps {
@@ -39,12 +39,17 @@ const App: React.FC = () => {
       <Route path="/" element={<HomePage user={currentUser} onLogout={handleLogout} />} />
       <Route path="/login" element={<LoginPage setCurrentUser={setCurrentUser} />} />
       <Route path="/signup" element={<SignupPage />} />
-
-      {/* TODO: 챗봇, 마이페이지 라우트 추가 예정 */}
+      <Route
+        path="/mypage"
+        element={
+          <PrivateRoute>
+            <MyPage />
+          </PrivateRoute>
+        }
+      />
+      {/* TODO: 챗봇 라우트 추가 예정 */}x
       {/* <Route path="/chat" element={<PrivateRoute><ChatPage /></PrivateRoute>} />
-      <Route path="/mypage" element={<PrivateRoute><MyPage /></PrivateRoute>} />
-      */}
-
+       */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );

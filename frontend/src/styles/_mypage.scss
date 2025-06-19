@@ -1,0 +1,41 @@
+@use 'base';
+
+.mypage-card {
+  @extend %card-base; // 공용 카드 스타일 상속
+
+  h1 {
+    text-align: left;
+  }
+
+  .info-grid {
+    margin: 30px 0;
+  }
+
+  .info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 15px 0;
+    border-bottom: 1px solid #777;
+
+    &:first-child {
+      padding-top: 0;
+    }
+    &:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+  }
+
+  .info-label {
+    font-weight: 700;
+    color: #555;
+  }
+
+  .info-value {
+    color: #333;
+  }
+
+  .button-group {
+    margin-top: 20px;
+  }
+}
