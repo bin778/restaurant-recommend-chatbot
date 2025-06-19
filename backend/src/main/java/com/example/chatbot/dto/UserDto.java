@@ -14,7 +14,20 @@ public class UserDto {
         private String nickname;
     }
 
-    // 사용자 정보 응답을 위한 내부 클래스 추가
+    @Getter
+    @Setter
+    public static class UpdateProfileRequest {
+        private String nickname;
+        private String newPassword;
+        private String confirmPassword;
+    }
+
+    @Getter
+    @Setter
+    public static class DeleteAccountRequest {
+        private String password;
+    }
+
     @Getter
     @Builder
     public static class InfoResponse {

@@ -10,6 +10,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.authentication.BadCredentialsException;
 
 import java.util.Collections;
 import java.util.regex.Pattern;
@@ -46,6 +47,43 @@ public class UserService implements UserDetailsService {
                 .build();
 
         return userRepository.save(user).getId();
+    }
+
+    @Transactional
+    public void updateProfile(String email, UserDto.UpdateProfileRequest dto) {
+        User user = findByEmail(email);
+
+        // 닉네임 변경 처리
+        if (dto.getNickname() != null && !dto.getNickname().isBlank() && !dto.getNickname().equals(user.getNickname())) {
+            // 변경하려는 닉네임이 이미 존재하는지 확인 (본인 닉네임 제외)
+            userRepository.findByNickname(dto.getNickname()).ifPresent(existedUser -> {
+                throw new IllegalArgumentException("이미 사용 중인 닉네임입니다.");
+            });
+            user.setNickname(dto.getNickname());
+        }
+
+        // 비밀번호 변경 처리
+        if (dto.getNewPassword() != null && !dto.getNewPassword().isBlank()) {
+            if (!dto.getNewPassword().equals(dto.getConfirmPassword())) {
+                throw new IllegalArgumentException("새 비밀번호가 일치하지 않습니다.");
+            }
+            if (!Pattern.matches(PASSWORD_REGEX, dto.getNewPassword())) {
+                throw new IllegalArgumentException("비밀번호는 8자 이상, 영문과 숫자를 포함해야 합니다.");
+            }
+            user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+        }
+    }
+
+    @Transactional
+    public void deleteAccount(String email, UserDto.DeleteAccountRequest dto) {
+        User user = findByEmail(email);
+
+        // 현재 비밀번호가 일치하는지 확인
+        if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
+            throw new BadCredentialsException("비밀번호가 일치하지 않습니다.");
+        }
+
+        userRepository.delete(user);
     }
 
     @Override

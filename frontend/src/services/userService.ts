@@ -1,6 +1,6 @@
 import axios from 'axios';
 import authHeader from './authHeader';
-import type { User } from '../types';
+import type { UserInfo, UpdateProfileData, DeleteAccountData } from '../types';
 
 const API_URL = '/api/users/';
 
@@ -10,8 +10,20 @@ const getMyInfo = () => {
   return axios.get(API_URL + 'me', { headers: authHeader() });
 };
 
+// 회원 정보 수정 요청
+const updateMyInfo = (data: UpdateProfileData) => {
+  return axios.put(API_URL + 'me', data, { headers: authHeader() });
+};
+
+// 회원 탈퇴 요청
+const deleteMyAccount = (data: DeleteAccountData) => {
+  return axios.delete(API_URL + 'me', { headers: authHeader(), data });
+};
+
 const userService = {
   getMyInfo,
+  updateMyInfo,
+  deleteMyAccount,
 };
 
 export default userService;

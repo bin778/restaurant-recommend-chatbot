@@ -1,10 +1,7 @@
 package com.example.chatbot.domain;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*; // Setter를 사용하기 위해 임포트
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -23,16 +20,19 @@ public class User {
     @Column(unique = true, nullable = false)
     private String email;
 
+    @Setter // password 필드에 대한 Setter 추가
     @Column(nullable = false)
     private String password;
 
+    @Setter // nickname 필드에 대한 Setter 추가
     @Column(unique = true, nullable = false)
     private String nickname;
 
     @Column(nullable = false)
-    private String role; // "ROLE_USER", "ROLE_ADMIN"
+    private String role;
 
-    @CreationTimestamp // 엔티티 생성 시각을 자동 주입
+    @CreationTimestamp
+    @Column(updatable = false)
     private LocalDateTime createdAt;
 
     @Builder

@@ -17,3 +17,21 @@ export interface LoginData {
   email: string;
   password: string;
 }
+
+// 내 정보 조회 응답 타입
+export interface UserInfo {
+  email: string;
+  nickname: string;
+}
+
+// 정보 수정 요청 데이터 타입
+export interface UpdateProfileData {
+  nickname: string;
+  newPassword?: string;
+  confirmPassword?: string;
+}
+
+// 계정 삭제 요청 데이터 타입
+export interface DeleteAccountData {
+  password: string;
+}
