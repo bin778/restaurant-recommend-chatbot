@@ -5,7 +5,9 @@ import com.example.chatbot.domain.User;
 import com.example.chatbot.dto.AuthDto;
 import com.example.chatbot.dto.UserDto;
 import com.example.chatbot.repository.UserRepository;
+import com.example.chatbot.service.LoginAttemptService;
 import com.example.chatbot.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,9 +23,10 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final UserService userService;
-    private final AuthenticationManager authenticationManager; // 주입
-    private final JwtTokenProvider jwtTokenProvider;       // 주입
-    private final UserRepository userRepository;             // 닉네임 조회를 위해 주입
+    private final AuthenticationManager authenticationManager;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository;
+    private final LoginAttemptService loginAttemptService;
 
     @PostMapping("/signup")
     public ResponseEntity<String> signup(@RequestBody UserDto.SignupRequest requestDto) {
@@ -36,19 +39,26 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthDto.LoginRequest requestDto) {
+    public ResponseEntity<?> login(@RequestBody AuthDto.LoginRequest requestDto, HttpServletRequest request) {
+        String ip = getClientIP(request);
+
+        // IP가 차단되었는지 먼저 확인
+        if (loginAttemptService.isBlocked(ip)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body("너무 많은 로그인 시도를 하셨습니다. 잠시 후 다시 시도해주세요.");
+        }
+
         try {
-            // AuthenticationManager를 통해 인증 시도
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(requestDto.getEmail(), requestDto.getPassword())
             );
 
-            // 인증 성공 시, 사용자 정보로 JWT 생성
+            // 로그인 성공 시, 실패 카운트 초기화
+            loginAttemptService.loginSucceeded(ip);
+
             String email = authentication.getName();
             User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
             String token = jwtTokenProvider.createToken(email, user.getNickname());
 
-            // 응답 DTO 생성 및 반환
             AuthDto.LoginResponse responseDto = AuthDto.LoginResponse.builder()
                     .grantType("Bearer")
                     .accessToken(token)
@@ -58,8 +68,18 @@ public class AuthController {
             return ResponseEntity.ok(responseDto);
 
         } catch (BadCredentialsException e) {
-            // 인증 실패 시 (비밀번호 틀림 등)
+            // 로그인 실패 시, 실패 카운트 증가
+            loginAttemptService.loginFailed(ip);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("이메일 또는 비밀번호가 올바르지 않습니다.");
         }
+    }
+
+    // 클라이언트 IP 주소를 가져오는 헬퍼 메서드
+    private String getClientIP(HttpServletRequest request) {
+        String xfHeader = request.getHeader("X-Forwarded-For");
+        if (xfHeader == null) {
+            return request.getRemoteAddr();
+        }
+        return xfHeader.split(",")[0];
     }
 }
