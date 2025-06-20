@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+
 import HomePage from './pages/HomePage.tsx';
 import LoginPage from './pages/LoginPage.tsx';
 import SignupPage from './pages/SignupPage.tsx';
 import MyPage from './pages/MyPage.tsx';
 import UpdateProfilePage from './pages/UpdateProfilePage.tsx';
 import DeleteAccountPage from './pages/DeleteAccountPage.tsx';
-import authService from './services/authService';
+import ChatPage from './pages/ChatPage.tsx';
+
+import authService from './services/authService.ts';
 import type { User } from './types'; // 공용 User 타입 임포트
-// TODO: ChatPage 구현
-// import ChatPage from './pages/ChatPage';
 
 // PrivateRoute 컴포넌트가 받을 props의 타입을 정의
 interface PrivateRouteProps {
@@ -67,8 +68,15 @@ const App: React.FC = () => {
           </PrivateRoute>
         }
       />
+      <Route
+        path="/chat"
+        element={
+          <PrivateRoute>
+            <ChatPage />
+          </PrivateRoute>
+        }
+      />
 
-      {/* <Route path="/chat" element={<PrivateRoute><ChatPage /></PrivateRoute>} /> */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
   );

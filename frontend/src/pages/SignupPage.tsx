@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import authService from '../services/authService';
 
-// TODO: 비밀번호를 특수문자도 허용하도록 수정할 것
 const SignupPage: React.FC = () => {
   // 각 state가 문자열(string) 타입임을 명시
   const [email, setEmail] = useState<string>('');

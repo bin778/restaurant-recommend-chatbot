@@ -15,7 +15,6 @@ const HomePage: React.FC<HomePageProps> = ({ user, onLogout }) => {
       <p className="subtitle">대화형으로 원하는 맛집을 찾아보세요!</p>
 
       {/* TODO: 내 정보(관리자) -> 회원 목록, 수정, 탈퇴(사용자까지), 금지어 등록 등 */}
-      {/* TODO: 챗봇 화면 구현할 것! */}
       {user ? (
         // 로그인 상태일 때
         <div className="authenticated-view">
