@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import chatService from '../services/chatService.ts';
-import '../styles/_chat.scss'; // 챗봇 전용 스타일 임포트
+import BackButton from '../components/BackButton.tsx';
+import '../styles/_chat.scss';
 
 // 메시지 객체의 타입을 정의
 interface Message {
@@ -70,6 +71,7 @@ const ChatPage: React.FC = () => {
     <div className="chat-page-container">
       <div className="chat-window">
         <header className="chat-header">
+          <BackButton />
           <h1>맛집 추천 챗봇 🤖</h1>
         </header>
         <main className="message-list" ref={messageListRef}>

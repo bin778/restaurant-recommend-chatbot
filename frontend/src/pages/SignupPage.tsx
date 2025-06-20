@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import authService from '../services/authService';
+import authService from '../services/authService.ts';
+import BackButton from '../components/BackButton.tsx';
 
 const SignupPage: React.FC = () => {
   // 각 state가 문자열(string) 타입임을 명시
@@ -41,6 +42,7 @@ const SignupPage: React.FC = () => {
 
   return (
     <div className="form-card">
+      <BackButton />
       <h1>회원가입</h1>
       {error && <p className="error-msg">{error}</p>}
       {message && <p className="success-msg">{message}</p>}

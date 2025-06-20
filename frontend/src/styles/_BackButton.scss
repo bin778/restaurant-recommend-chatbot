@@ -1,0 +1,27 @@
+.back-button {
+  position: absolute;
+  top: 10px;
+  left: 20px;
+
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  border-radius: 50%;
+  transition: background-color 0.2s, color 0.2s;
+  z-index: 20;
+
+  &:hover {
+    background-color: #f0f0f0;
+    color: #333;
+  }
+
+  svg {
+    width: 28px;
+    height: 28px;
+  }
+}

@@ -3,7 +3,8 @@
 @use 'base';
 
 .form-card {
-  @extend %card-base; // 공용 카드 스타일 상속
+  @extend %card-base;
+  position: relative;
 }
 
 .form-group {

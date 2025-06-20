@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import authService from '../services/authService';
+import authService from '../services/authService.ts';
+import BackButton from '../components/BackButton.tsx';
 import type { User } from '../types';
 
 // 컴포넌트가 받을 props의 타입을 정의
@@ -33,6 +34,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ setCurrentUser }) => {
 
   return (
     <div className="form-card">
+      <BackButton />
       <h1>로그인</h1>
       {error && <p className="error-msg">{error}</p>}
       <form onSubmit={handleLogin}>
