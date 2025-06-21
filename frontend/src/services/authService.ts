@@ -1,7 +1,7 @@
 import axios from 'axios';
-import { jwtDecode } from 'jwt-decode';
-import type { User, SignupData, LoginData } from '../types'; // 정의한 타입 임포트
+import type { User, SignupData, LoginData } from '../types';
 
+let currentUser: User | null = null;
 const API_URL = '/api/auth/';
 
 // 회원가입 요청
@@ -13,41 +13,33 @@ const signup = (data: SignupData): Promise<void> => {
 const login = async (data: LoginData): Promise<User> => {
   const response = await axios.post<User>(API_URL + 'login', data);
   if (response.data.accessToken) {
-    localStorage.setItem('user', JSON.stringify(response.data));
+    currentUser = response.data; // 메모리에 사용자 정보 저장
   }
   return response.data;
 };
 
-// 로그아웃
-const logout = (): void => {
-  localStorage.removeItem('user');
+// 새 액세스 토큰을 요청하는 함수 추가
+const refresh = async (): Promise<User> => {
+  const response = await axios.post<User>(API_URL + 'refresh');
+  if (response.data.accessToken) {
+    currentUser = response.data;
+  }
+  return response.data;
 };
 
-// 현재 로그인된 사용자 정보 가져오기
+const logout = (): void => {
+  currentUser = null;
+  // TODO: 추후 /api/auth/logout 엔드포인트를 호출하여 쿠키를 제거하는 로직 추가
+};
+
 const getCurrentUser = (): User | null => {
-  const userStr = localStorage.getItem('user');
-  if (!userStr) {
-    return null;
-  }
-
-  try {
-    const user: User = JSON.parse(userStr);
-    const decodedJwt = jwtDecode(user.accessToken);
-
-    if (decodedJwt.exp && decodedJwt.exp * 1000 < Date.now()) {
-      logout();
-      return null;
-    }
-    return user;
-  } catch (error) {
-    logout();
-    return null;
-  }
+  return currentUser;
 };
 
 const authService = {
   signup,
   login,
+  refresh, // export 추가
   logout,
   getCurrentUser,
 };

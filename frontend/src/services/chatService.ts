@@ -1,10 +1,10 @@
-import axios from 'axios';
+import api from './api';
 import authHeader from './authHeader';
 
 const API_URL = '/api/chat';
 
 const sendMessage = (message: string) => {
-  return axios.post(API_URL, { message }, { headers: authHeader() });
+  return api.post(API_URL, { message }, { headers: authHeader() });
 };
 
 const chatService = {

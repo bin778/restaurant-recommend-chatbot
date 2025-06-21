@@ -16,6 +16,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.*;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -39,7 +40,7 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody AuthDto.LoginRequest requestDto, HttpServletRequest request) {
+    public ResponseEntity<?> login(@RequestBody AuthDto.LoginRequest requestDto, HttpServletRequest request, HttpServletResponse response) {
         String ip = getClientIP(request);
 
         // IP가 차단되었는지 먼저 확인
@@ -57,11 +58,19 @@ public class AuthController {
 
             String email = authentication.getName();
             User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
-            String token = jwtTokenProvider.createToken(email, user.getNickname());
+
+            String accessToken = jwtTokenProvider.createAccessToken(email, user.getNickname());
+            String refreshToken = jwtTokenProvider.createRefreshToken(email);
+
+            Cookie refreshTokenCookie = new Cookie("refreshToken", refreshToken);
+            refreshTokenCookie.setHttpOnly(true);
+            refreshTokenCookie.setSecure(true);
+            refreshTokenCookie.setPath("/");
+            refreshTokenCookie.setMaxAge(7 * 24 * 60 * 60);
+            response.addCookie(refreshTokenCookie);
 
             AuthDto.LoginResponse responseDto = AuthDto.LoginResponse.builder()
-                    .grantType("Bearer")
-                    .accessToken(token)
+                    .accessToken(accessToken)
                     .nickname(user.getNickname())
                     .build();
 
@@ -74,7 +83,25 @@ public class AuthController {
         }
     }
 
-    // 클라이언트 IP 주소를 가져오는 헬퍼 메서드
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refreshToken(@CookieValue(name = "refreshToken", required = false) String refreshToken) {
+        if (refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Refresh Token");
+        }
+
+        String email = jwtTokenProvider.getUserPk(refreshToken);
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+
+        String newAccessToken = jwtTokenProvider.createAccessToken(email, user.getNickname());
+
+        AuthDto.LoginResponse responseDto = AuthDto.LoginResponse.builder()
+                .accessToken(newAccessToken)
+                .nickname(user.getNickname())
+                .build();
+
+        return ResponseEntity.ok(responseDto);
+    }
+
     private String getClientIP(HttpServletRequest request) {
         String xfHeader = request.getHeader("X-Forwarded-For");
         if (xfHeader == null) {
