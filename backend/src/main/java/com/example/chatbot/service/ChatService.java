@@ -1,14 +1,32 @@
 package com.example.chatbot.service;
 
+import com.example.chatbot.dto.ChatDto;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 @Service
+@RequiredArgsConstructor
 public class ChatService {
+
+    private final WebClient webClient; // WebClient 주입
+
     public String getLlmReply(String userMessage) {
-        // TODO: 추후 이 부분에서 WebClient 또는 RestTemplate을 사용하여 Python LLM 서버 (예: http://localhost:8000/recommend)에 userMessage를 보내고 응답을 받아 반환하는 로직을 구현
-        // 현재는 테스트를 위해 사용자의 메시지를 그대로 따라하는 에코(Echo) 로직을 구현
-        System.out.println("사용자 메시지: " + userMessage);
-        String botReply = "봇: \"" + userMessage + "\" 라고 하셨네요!";
-        return botReply;
+        // Python FastAPI 서버의 /api/recommend 엔드포인트로 POST 요청을 보냅니다.
+        ChatDto.ChatResponse response = webClient.post()
+                .uri("/api/recommend")
+                .body(Mono.just(new ChatDto.ChatRequest(userMessage)), ChatDto.ChatRequest.class)
+                .retrieve() // 응답을 받음
+                .bodyToMono(ChatDto.ChatResponse.class) // 응답 본문을 ChatResponse DTO로 변환
+                // .block()은 비동기 스트림이 끝날 때까지 현재 스레드를 차단
+                // TODO: 테스트나 간단한 구현에서는 편리하지만, 실제 서비스에서는 요청 처리 스레드를 낭비할 수 있으므로 전체 로직을 비동기적으로 구성
+                .block();
+
+        if (response != null) {
+            return response.getReply();
+        } else {
+            return "죄송합니다, 챗봇 서버에서 응답을 받지 못했습니다.";
+        }
     }
 }
