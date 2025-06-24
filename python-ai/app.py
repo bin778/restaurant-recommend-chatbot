@@ -1,3 +1,5 @@
+# python-ai/app.py
+
 import os
 import json
 import urllib.request
@@ -18,15 +20,14 @@ GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
 if not GOOGLE_API_KEY:
     raise ValueError("GOOGLE_API_KEY 환경변수가 설정되지 않았습니다.")
 genai.configure(api_key=GOOGLE_API_KEY)
-
-# --- Gemini 2.5 Flash 설정 ---
-model = genai.GenerativeModel('gemini-2.5-flash')
+model = genai.GenerativeModel('gemini-1.5-flash-latest')
 
 # --- Naver API 설정 ---
 NAVER_CLIENT_ID = os.environ.get("NAVER_CLIENT_ID")
 NAVER_CLIENT_SECRET = os.environ.get("NAVER_CLIENT_SECRET")
 if not NAVER_CLIENT_ID or not NAVER_CLIENT_SECRET:
     raise ValueError("네이버 API 키가 설정되지 않았습니다.")
+
 
 # --- Pydantic 모델 정의 ---
 class RecommendRequest(BaseModel):
@@ -35,11 +36,12 @@ class RecommendRequest(BaseModel):
 class RecommendResponse(BaseModel):
     reply: str
 
+
 # --- 헬퍼 함수: 네이버 지역 검색 API 호출 ---
 def search_naver_local(query: str) -> dict:
     """네이버 지역 검색 API를 호출하고 결과를 JSON으로 반환합니다."""
     encText = urllib.parse.quote(query)
-    url = f"https://openapi.naver.com/v1/search/local.json?query={encText}&display=5" # 최대 5개 결과
+    url = f"https://openapi.naver.com/v1/search/local.json?query={encText}&display=5"
     
     request = urllib.request.Request(url)
     request.add_header("X-Naver-Client-Id", NAVER_CLIENT_ID)
@@ -67,18 +69,9 @@ async def recommend_restaurant(request: RecommendRequest):
     try:
         # --- 1단계: 키워드 추출 ---
         keyword_extraction_prompt = f"""
-        당신은 사용자의 문장에서 맛집 추천에 필요한 핵심 키워드를 추출하는 전문가입니다.
-        다음 사용자 메시지에서 '지역', '음식 종류', '분위기'에 해당하는 키워드를 찾아서 JSON 형식으로 반환해주세요.
-        만약 해당하는 키워드가 없으면 값은 ""(빈 문자열)로 설정해주세요.
-
+        사용자 메시지에서 맛집 추천에 필요한 '지역', '음식 종류', '분위기' 키워드를 JSON으로 추출해줘.
         사용자 메시지: "{user_message}"
-
-        JSON 형식:
-        {{
-          "location": "추출된 지역명",
-          "food": "추출된 음식 종류",
-          "mood": "추출된 분위기 키워드"
-        }}
+        JSON 형식: {{"location": "지역명", "food": "음식 종류", "mood": "분위기"}}
         """
         response = model.generate_content(keyword_extraction_prompt)
         response_text = response.text.strip().replace('```json', '').replace('```', '')
@@ -96,22 +89,32 @@ async def recommend_restaurant(request: RecommendRequest):
             bot_reply = "죄송합니다, 관련 맛집 정보를 찾을 수 없었어요. 다른 키워드로 다시 질문해주시겠어요?"
         else:
             context_info = "\n".join([
-                f"- 상호명: {item.get('title', '').replace('<b>', '').replace('</b>', '')}\n  - 주소: {item.get('address', '')}\n  - 카테고리: {item.get('category', '')}"
+                (f"- 상호명: {item.get('title', '').replace('<b>', '').replace('</b>', '')}, "
+                 f"주소: {item.get('address', '')}, "
+                 f"카테고리: {item.get('category', '')}")
                 for item in search_results["items"]
             ])
 
+            # --- 답변 가독성 개선을 위한 프롬프트 고도화 ---
             generation_prompt = f"""
-            당신은 사용자의 질문과 제공된 검색 결과를 바탕으로 맛집을 추천해주는 친절한 챗봇입니다.
-            반드시 아래 '검색된 맛집 정보' 내에서만 답변을 생성해야 하며, 없는 내용을 지어내서는 안 됩니다.
-            사용자의 질문에 맞춰 자연스러운 추천 문장을 만들어주세요.
+            너는 사용자의 질문과 제공된 검색 결과를 바탕으로 맛집을 추천해주는 친절한 챗봇이야.
 
-            [사용자 질문]
+            **[지시사항]**
+            1. 사용자의 질문 의도를 파악해서 첫 문장을 시작해줘. (예: "광명사거리역 근처 떡볶이 맛집을 찾으시는군요!")
+            2. '검색된 맛집 정보'를 바탕으로, 추천할 만한 가게들을 1~2개 정도 구체적으로 설명해줘.
+            3. 각 가게를 소개할 때는, **줄 바꿈(\\n)을 사용해서 문단을 명확하게 나누어줘.** 가독성이 매우 중요해.
+            4. 가게 이름은 그냥 텍스트로 말해줘. **절대 `**` 같은 마크다운 문법을 사용하지 마.**
+            5. 각 가게의 특징(카테고리)과 위치(주소)를 명확히 언급해줘.
+            6. 절대 '검색된 맛집 정보'에 없는 내용은 지어내서 말하면 안돼.
+            7. 마지막에는 "이 정보가 맛집을 고르시는 데 도움이 되기를 바랍니다!" 와 같이 친근한 마무리 인사를 덧붙여줘.
+
+            **[사용자 질문]**
             "{user_message}"
 
-            [검색된 맛집 정보]
+            **[검색된 맛집 정보]**
             {context_info}
 
-            [추천 답변]
+            **[추천 답변]**
             """
             
             final_response = model.generate_content(generation_prompt)
