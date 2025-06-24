@@ -57,6 +57,11 @@
   margin-bottom: 10px;
   clear: both;
 
+  .message-text {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+
   &.bot-message {
     background-color: #f1f0f0;
     float: left;
