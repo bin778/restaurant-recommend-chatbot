@@ -132,14 +132,14 @@
 
 ### 🧠 AI / Data
 
-![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
 ![Google Gemini](https://img.shields.io/badge/Google_Gemini-8E75B7?style=for-the-badge&logo=google-gemini&logoColor=white)
 ![Naver Cloud](https://img.shields.io/badge/Naver_Cloud_Platform-03C75A?style=for-the-badge&logo=naver&logoColor=white)
 
 ### 💾 Database
 
-![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
+![MySQL](https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white)
 
 ### ☁️ Deployment & Tools
 
@@ -202,6 +202,6 @@ pip install -r requirements.txt
 
 #    FastAPI 서버를 실행
 uvicorn app:app --host 0.0.0.0 --port 8000 --reload
-```
 
-- 웹 브라우저에서 프론트엔드 주소(http://localhost:5173)로 접속할 것!!
+# 4. 웹 브라우저에서 프론트엔드 주소(http://localhost:5173)로 접속할 것!!
+```
