@@ -125,7 +125,7 @@
 
 ### ⚙️ Backend
 
-![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.3.1-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white)
 ![Java](https://img.shields.io/badge/Java-007396?style=for-the-badge&logo=openjdk&logoColor=white)
 ![Spring Security](https://img.shields.io/badge/Spring_Security-6DB33F?style=for-the-badge&logo=spring&logoColor=white) ![JPA](https://img.shields.io/badge/JPA-6DB33F?style=for-the-badge&logo=hibernate&logoColor=white)
 ![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white)
@@ -168,9 +168,11 @@
 
 ### 8-1. 사전 요구사항
 
-- `Java 17` 이상
-- `Node.js 18` 이상
+- `Java 17.0` 이상
+- `Spring Boot 3.5` 이상
+- `Node.js 18.0` 이상
 - `MySQL 8.0` 이상
+- `Python 3.11` 이상
 
 ### 8-2. 환경 변수 설정
 
