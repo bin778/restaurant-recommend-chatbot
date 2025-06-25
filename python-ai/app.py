@@ -8,26 +8,13 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 from google.api_core.exceptions import ResourceExhausted, NotFound
 
-# TODO: 질문에 감정이 있을 경우, 그에 맞는 감정 답변 생성
-# TODO: 날씨, 기분, 맛, 네이버 평점에 따른 맛집 추천 추가
 # .env 로드 및 API 설정
 load_dotenv()
 app = FastAPI()
-
-# --- API 키 설정 ---
-# Gemini API
-GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
-if not GOOGLE_API_KEY:
-    raise ValueError("GOOGLE_API_KEY 환경변수가 설정되지 않았습니다.")
-genai.configure(api_key=GOOGLE_API_KEY)
+genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
 model = genai.GenerativeModel('gemini-2.5-flash')
-
-# Naver API
 NAVER_CLIENT_ID = os.environ.get("NAVER_CLIENT_ID")
 NAVER_CLIENT_SECRET = os.environ.get("NAVER_CLIENT_SECRET")
-if not NAVER_CLIENT_ID or not NAVER_CLIENT_SECRET:
-    raise ValueError("네이버 API 키가 설정되지 않았습니다.")
-
 
 # --- Pydantic 모델 정의 ---
 class Message(BaseModel):
@@ -40,8 +27,7 @@ class RecommendRequest(BaseModel):
 class RecommendResponse(BaseModel):
     reply: str
 
-
-# --- 헬퍼 함수: 네이버 지역 검색 API 호출 ---
+# --- 네이버 검색 함수 (변경 없음) ---
 def search_naver_local(query: str) -> dict:
     print(f"네이버 검색 쿼리: '{query}'")
     encText = urllib.parse.quote(query)
@@ -73,7 +59,7 @@ async def recommend_restaurant(request: RecommendRequest):
         [지시사항]
         1. 'topic': 대화의 핵심 주제(음식 또는 브랜드)를 추출합니다. "다른 곳은 없어?" 와 같이 주제가 생략되면, 이전 대화에서 사용자가 마지막으로 관심을 보인 주제를 가져와야 합니다.
         2. 'locations': 사용자가 마지막에 언급한 지역명 리스트입니다.
-        3. 'is_franchise': 'topic'이 '스타벅스', '프랭크버거'와 같이 명확한 프랜차이즈 이름이면 true, 그렇지 않으면 false로 설정해주세요.
+        3. 'is_franchise': 'topic'이 '스타벅스', '프랭크버거', 'BHC'와 같이 명확한 프랜차이즈 이름이면 true, 그렇지 않으면 false로 설정해주세요.
         4. 'exclude_list': 이전 챗봇 답변에서 이미 추천했던 가게 이름들의 리스트입니다. 사용자가 "다른 곳"을 찾을 때, 이 가게들을 제외하고 추천해야 합니다.
 
         [대화 기록]
