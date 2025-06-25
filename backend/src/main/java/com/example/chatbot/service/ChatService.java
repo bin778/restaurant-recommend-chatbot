@@ -10,17 +10,15 @@ import reactor.core.publisher.Mono;
 @RequiredArgsConstructor
 public class ChatService {
 
-    private final WebClient webClient; // WebClient 주입
+    private final WebClient webClient;
 
-    public String getLlmReply(String userMessage) {
-        // Python FastAPI 서버의 /api/recommend 엔드포인트로 POST 요청을 보냅니다.
+    public String getLlmReply(ChatDto.ChatRequest chatRequest) {
+        // chatRequest 객체 전체를 Python 서버로 전달합니다.
         ChatDto.ChatResponse response = webClient.post()
                 .uri("/api/recommend")
-                .body(Mono.just(new ChatDto.ChatRequest(userMessage)), ChatDto.ChatRequest.class)
-                .retrieve() // 응답을 받음
-                .bodyToMono(ChatDto.ChatResponse.class) // 응답 본문을 ChatResponse DTO로 변환
-                // .block()은 비동기 스트림이 끝날 때까지 현재 스레드를 차단
-                // TODO: 테스트나 간단한 구현에서는 편리하지만, 실제 서비스에서는 요청 처리 스레드를 낭비할 수 있으므로 전체 로직을 비동기적으로 구성
+                .body(Mono.just(chatRequest), ChatDto.ChatRequest.class)
+                .retrieve()
+                .bodyToMono(ChatDto.ChatResponse.class)
                 .block();
 
         if (response != null) {
@@ -30,3 +28,4 @@ public class ChatService {
         }
     }
 }
+

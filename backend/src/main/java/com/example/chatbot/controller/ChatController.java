@@ -14,7 +14,7 @@ public class ChatController {
 
     @PostMapping
     public ResponseEntity<ChatDto.ChatResponse> handleChatMessage(@RequestBody ChatDto.ChatRequest request) {
-        String reply = chatService.getLlmReply(request.getMessage());
+        String reply = chatService.getLlmReply(request);
         return ResponseEntity.ok(new ChatDto.ChatResponse(reply));
     }
 }

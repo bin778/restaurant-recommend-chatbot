@@ -35,3 +35,10 @@ export interface UpdateProfileData {
 export interface DeleteAccountData {
   password: string;
 }
+
+// 채팅 메시지 데이터 타입
+export interface Message {
+  id?: number; // 화면에서만 사용하는 키, optional
+  sender: 'user' | 'bot';
+  text: string;
+}

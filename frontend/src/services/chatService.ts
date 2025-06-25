@@ -1,10 +1,10 @@
 import api from './api';
-import authHeader from './authHeader';
+import type { Message } from '../types';
 
 const API_URL = '/api/chat';
 
-const sendMessage = (message: string) => {
-  return api.post(API_URL, { message }, { headers: authHeader() });
+const sendMessage = (messages: Message[]) => {
+  return api.post(API_URL, { messages });
 };
 
 const chatService = {

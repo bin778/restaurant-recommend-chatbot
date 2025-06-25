@@ -1,14 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import chatService from '../services/chatService.ts';
-import BackButton from '../components/BackButton.tsx';
+import chatService from '../services/chatService';
+import BackButton from '../components/BackButton';
 import '../styles/_chat.scss';
-
-// 메시지 객체의 타입을 정의
-interface Message {
-  id: number;
-  text: string;
-  sender: 'user' | 'bot';
-}
+import type { Message } from '../types';
 
 const ChatPage: React.FC = () => {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -16,7 +10,6 @@ const ChatPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messageListRef = useRef<HTMLDivElement>(null);
 
-  // 컴포넌트가 처음 로드될 때 웰컴 메시지를 추가
   useEffect(() => {
     setMessages([
       {
@@ -27,7 +20,6 @@ const ChatPage: React.FC = () => {
     ]);
   }, []);
 
-  // 새 메시지가 추가될 때마다 스크롤을 맨 아래로 이동
   useEffect(() => {
     if (messageListRef.current) {
       messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
@@ -43,12 +35,16 @@ const ChatPage: React.FC = () => {
       text: inputValue,
       sender: 'user',
     };
-    setMessages(prev => [...prev, userMessage]);
+
+    // 새로운 메시지를 포함한 전체 대화 기록을 상태에 업데이트
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setInputValue('');
     setIsLoading(true);
 
     try {
-      const response = await chatService.sendMessage(userMessage.text);
+      // chatService에 단일 메시지가 아닌, 업데이트된 전체 메시지 배열(newMessages)을 전달
+      const response = await chatService.sendMessage(newMessages);
       const botMessage: Message = {
         id: Date.now() + 1,
         text: response.data.reply,
