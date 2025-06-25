@@ -6,12 +6,12 @@ from pydantic import BaseModel
 from typing import List, Dict, Any
 from dotenv import load_dotenv
 import google.generativeai as genai
-from google.api_core.exceptions import ResourceExhausted, NotFound
 
 # .env 로드 및 API 설정
 load_dotenv()
 app = FastAPI()
 genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
+# 요청하신 gemini-2.5-flash 모델을 사용합니다.
 model = genai.GenerativeModel('gemini-2.5-flash')
 NAVER_CLIENT_ID = os.environ.get("NAVER_CLIENT_ID")
 NAVER_CLIENT_SECRET = os.environ.get("NAVER_CLIENT_SECRET")
@@ -51,77 +51,94 @@ async def recommend_restaurant(request: RecommendRequest):
     print(f"전달받은 대화기록: {conversation_history}")
 
     try:
-        # --- 1단계: 대화 맥락 기반 키워드 추출 (고도화) ---
-        keyword_extraction_prompt = f"""
-        당신은 대화의 맥락을 완벽하게 이해하여 검색에 필요한 정보를 추출하는 AI 전문가입니다.
-        아래 [대화 기록]을 참고하여, **가장 마지막에 사용자가 한 말**에서 검색 키워드를 추출해주세요.
-
-        [지시사항]
-        1. 'topic': 대화의 핵심 주제(음식 또는 브랜드)를 추출합니다. "다른 곳은 없어?" 와 같이 주제가 생략되면, 이전 대화에서 사용자가 마지막으로 관심을 보인 주제를 가져와야 합니다.
-        2. 'locations': 사용자가 마지막에 언급한 지역명 리스트입니다.
-        3. 'is_franchise': 'topic'이 '스타벅스', '프랭크버거', 'BHC'와 같이 명확한 프랜차이즈 이름이면 true, 그렇지 않으면 false로 설정해주세요.
-        4. 'exclude_list': 이전 챗봇 답변에서 이미 추천했던 가게 이름들의 리스트입니다. 사용자가 "다른 곳"을 찾을 때, 이 가게들을 제외하고 추천해야 합니다.
+        # --- 1단계 (신규): 의도 및 감정 분석 ---
+        intent_analysis_prompt = f"""
+        당신은 사용자의 대화 의도를 분석하는 AI입니다.
+        아래 [대화 기록]의 마지막 메시지를 보고, 의도를 '맛집 추천' 또는 '일반 대화'로 분류해주세요.
+        만약 '맛집 추천' 의도라면, 사용자의 기분(예: 우울함, 신남), 날씨(예: 비 오는 날), 맛 취향(예: 달달한, 매콤한)과 관련된 '감성/상황 키워드'를 함께 추출해주세요.
 
         [대화 기록]
         {json.dumps([msg.dict() for msg in conversation_history], ensure_ascii=False)}
 
         [JSON 출력 형식]
-        {{
-          "topic": "음식/브랜드",
-          "locations": ["지역명1", "지역명2"],
-          "is_franchise": true/false,
-          "exclude_list": ["이미 추천한 가게1", "이미 추천한 가게2"]
-        }}
+        {{"intent": "맛집 추천" or "일반 대화", "sentiment_keywords": "감성/상황 키워드 또는 빈 문자열"}}
         """
-        response = model.generate_content(keyword_extraction_prompt)
-        cleaned_response_text = response.text.strip().lstrip("```json").rstrip("```")
-        keywords = json.loads(cleaned_response_text)
-        print(f"추출된 키워드: {keywords}")
+        intent_response = model.generate_content(intent_analysis_prompt)
+        intent_data = json.loads(intent_response.text.strip().lstrip("```json").rstrip("```"))
+        print(f"의도 분석 결과: {intent_data}")
+        
+        intent = intent_data.get("intent")
+        sentiment = intent_data.get("sentiment_keywords", "")
 
-        # --- 2단계: 동적 검색 쿼리 생성 및 실행 ---
+        # --- 분기 처리: 일반 대화 vs 맛집 추천 ---
+        if intent == "일반 대화":
+            general_response_prompt = f"""
+            당신은 사용자의 말에 친절하게 공감하며 응답하는 챗봇입니다.
+            마지막 사용자 메시지에 대해 짧고 자연스러운 답변을 생성해주세요. (예: "천만에요! 도움이 되셨다니 저도 기쁘네요. 😊")
+
+            사용자 메시지: "{latest_user_message}"
+            """
+            bot_reply = model.generate_content(general_response_prompt).text
+            return RecommendResponse(reply=bot_reply)
+
+        # --- 2단계: 맛집 추천을 위한 키워드 추출 ---
+        keyword_extraction_prompt = f"""
+        [대화 기록]과 [감성/상황 키워드]를 바탕으로, 네이버 지도 검색에 사용할 검색어와 관련 정보를 JSON으로 추출해줘.
+
+        [지시사항]
+        1. 'topics': 사용자가 언급한 음식, 브랜드, 맛(예: 매운, 달달한)을 **모두 리스트 형태**로 추출해줘.
+        2. 'locations': 사용자가 마지막에 언급한 지역명 리스트야.
+        3. 'is_franchise': 'topics'에 '스타벅스', '프랭크버거'와 같은 명확한 프랜차이즈 이름이 포함되면 true로 설정해줘.
+        4. 'exclude_list': 이전 챗봇 답변에서 이미 추천했던 가게 이름들의 리스트야.
+        5. '비 오는 날' -> '파전, 칼국수', '우울한 날' -> '달달한 케이크, 매운 떡볶이' 처럼 상황을 검색 가능한 음식 키워드로 변환해서 'topics'에 추가해줘.
+
+        [대화 기록]: {json.dumps([msg.dict() for msg in conversation_history], ensure_ascii=False)}
+        [감성/상황 키워드]: "{sentiment}"
+
+        [JSON 출력 형식]
+        {{"topics": ["음식/브랜드1", "맛1"], "locations": ["지역명1"], "is_franchise": true/false, "exclude_list": ["추천했던 가게1"]}}
+        """
+        keyword_response = model.generate_content(keyword_extraction_prompt)
+        keywords = json.loads(keyword_response.text.strip().lstrip("```json").rstrip("```"))
+        print(f"검색 키워드: {keywords}")
+
+        # --- 3단계: 외부 데이터 검색 ---
         all_search_items = []
         if keywords.get("locations"):
             for location in keywords["locations"]:
-                query_suffix = "" if keywords.get("is_franchise") else " 맛집"
-                search_query = f"{location} {keywords.get('topic', '')}{query_suffix}"
-                
-                search_results = search_naver_local(search_query.strip())
-                if search_results and search_results.get("items"):
-                    all_search_items.extend(search_results["items"])
+                # 여러 토픽에 대해 각각 검색 수행
+                for topic in keywords.get("topics", []):
+                    query_suffix = "" if keywords.get("is_franchise") else " 맛집"
+                    search_query = f"{location} {topic}{query_suffix}"
+                    search_results = search_naver_local(search_query.strip())
+                    if search_results and search_results.get("items"):
+                        all_search_items.extend(search_results["items"])
         
-        # --- 3단계: 최종 답변 생성 ---
+        # --- 4단계: 최종 답변 생성 ---
         exclude_list = keywords.get("exclude_list", [])
         filtered_items = [item for item in all_search_items if item.get('title', '').replace('<b>', '').replace('</b>', '') not in exclude_list]
         unique_items = list({item['link']: item for item in filtered_items}.values())
 
         if not unique_items:
-            bot_reply = "죄송합니다, 더 이상 추천해드릴 다른 맛집 정보를 찾을 수 없었어요."
+            bot_reply = "죄송합니다, 원하시는 조건의 맛집 정보를 찾지 못했어요. 키워드를 조금 바꿔서 다시 질문해주시겠어요?"
         else:
-            context_info = "\n".join([f"- 상호명: {item.get('title', '').replace('<b>', '').replace('</b>', '')}, 주소: {item.get('address', '')}, 카테고리: {item.get('category', '')}" for item in unique_items[:5]])
+            context_info = "\n".join([f"- {item.get('title', '').replace('<b>', '').replace('</b>', '')} (주소: {item.get('address', '')}, 카테고리: {item.get('category', '')})" for item in unique_items[:5]])
 
-            # --- 답변 상세도 및 말투 개선을 위한 최종 프롬프트 ---
             generation_prompt = f"""
-            너는 사용자의 질문과 제공된 검색 결과를 바탕으로 맛집을 추천하는, 유머감각 있고 친절한 '맛집 전문가 챗봇'이야.
+            너는 사용자의 감정까지 고려하여 맞춤형으로 추천하는, 다정다감한 맛집 큐레이터야.
 
             [지시사항]
-            1. 사용자의 마지막 질문 의도를 파악해서, 친구처럼 자연스럽게 답변을 시작해줘.
-            2. 추천할 가게가 **2개 이하이면**, 각 가게에 대해 **상세하고 매력적으로 설명**해줘. (예: "여기는 뷰가 정말 끝내줘요!")
-            3. 추천할 가게가 **3개 이상이면**, 각 가게의 **핵심 정보(특징, 주소)만 간결하게 요약**해서 알려줘.
-            4. 각 가게는 번호를 매겨서 설명하고, 가게 이름과 설명을 줄바꿈으로 명확히 구분해줘.
-            5. 가게 이름에 'DT'가 포함되어 있다면 "(드라이브스루 가능)" 이라고 덧붙여줘.
-            6. **절대 마크다운(`**` 등)을 사용하지 마.**
-            7. 마지막에는 아래 예시들처럼, **상황에 맞는 다양하고 친근한 마무리 인사**를 건네줘.
-                - "이 중에 마음에 드는 곳이 있었으면 좋겠네요! 즐거운 시간 보내세요!"
-                - "더 궁금한 점이 있다면 언제든지 다시 찾아주세요!"
-                - "맛있는 식사 하시고 행복한 하루 되세요! 😊"
+            1. [사용자 감성]을 반영하여, 따뜻하게 공감하는 첫인사로 답변을 시작해줘. (예: "비가 와서 기분이 꿀꿀하시군요. 그럴 땐 따뜻한 국물이 최고죠!")
+            2. '검색된 맛집 정보'를 바탕으로, 질문에 가장 적합한 가게를 최대 5곳까지 선정해서 번호를 매겨 설명해줘.
+            3. 추천할 가게가 2개 이하이면, 각 가게에 대해 상세하고 매력적으로 설명해주고, 3개 이상이면 핵심 정보만 간결하게 요약해줘.
+            4. 가게 이름에 'DT'가 포함되어 있다면 "(드라이브스루 가능)" 이라고 덧붙여줘.
+            5. 마지막에는 "이 추천이 마음에 드셨으면 좋겠네요! 기분 좋은 하루 보내세요. 😄" 와 같이 다양하고 긍정적인 마무리 인사를 건네줘.
+            6. 절대 마크다운(`**` 등)을 사용하지 마.
 
-            [사용자 질문]
-            {latest_user_message}
-
-            [검색된 맛집 정보]
-            {context_info}
-
-            [너의 답변]
+            [사용자 감성]: "{sentiment}"
+            [사용자 질문]: "{latest_user_message}"
+            [검색된 맛집 정보]: {context_info}
+            [너의 답변]:
             """
             final_response = model.generate_content(generation_prompt)
             bot_reply = final_response.text
