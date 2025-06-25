@@ -6,15 +6,28 @@ from pydantic import BaseModel
 from typing import List, Dict, Any
 from dotenv import load_dotenv
 import google.generativeai as genai
-from google.api_core.exceptions import ResourceExhausted, NotFound # NotFound 임포트 추가
+from google.api_core.exceptions import ResourceExhausted, NotFound
 
+# TODO: 질문에 감정이 있을 경우, 그에 맞는 감정 답변 생성
+# TODO: 날씨, 기분, 맛, 네이버 평점에 따른 맛집 추천 추가
 # .env 로드 및 API 설정
 load_dotenv()
 app = FastAPI()
-genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
+
+# --- API 키 설정 ---
+# Gemini API
+GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
+if not GOOGLE_API_KEY:
+    raise ValueError("GOOGLE_API_KEY 환경변수가 설정되지 않았습니다.")
+genai.configure(api_key=GOOGLE_API_KEY)
 model = genai.GenerativeModel('gemini-2.5-flash')
+
+# Naver API
 NAVER_CLIENT_ID = os.environ.get("NAVER_CLIENT_ID")
 NAVER_CLIENT_SECRET = os.environ.get("NAVER_CLIENT_SECRET")
+if not NAVER_CLIENT_ID or not NAVER_CLIENT_SECRET:
+    raise ValueError("네이버 API 키가 설정되지 않았습니다.")
+
 
 # --- Pydantic 모델 정의 ---
 class Message(BaseModel):
@@ -27,7 +40,8 @@ class RecommendRequest(BaseModel):
 class RecommendResponse(BaseModel):
     reply: str
 
-# --- 네이버 검색 함수 (변경 없음) ---
+
+# --- 헬퍼 함수: 네이버 지역 검색 API 호출 ---
 def search_naver_local(query: str) -> dict:
     print(f"네이버 검색 쿼리: '{query}'")
     encText = urllib.parse.quote(query)
@@ -47,7 +61,6 @@ def search_naver_local(query: str) -> dict:
 @app.post("/api/recommend", response_model=RecommendResponse)
 async def recommend_restaurant(request: RecommendRequest):
     conversation_history = request.messages
-    # --- 누락된 변수 정의 추가 ---
     latest_user_message = conversation_history[-1].text if conversation_history else ""
     print(f"전달받은 대화기록: {conversation_history}")
 
@@ -100,17 +113,21 @@ async def recommend_restaurant(request: RecommendRequest):
         else:
             context_info = "\n".join([f"- 상호명: {item.get('title', '').replace('<b>', '').replace('</b>', '')}, 주소: {item.get('address', '')}, 카테고리: {item.get('category', '')}" for item in unique_items[:5]])
 
+            # --- 답변 상세도 및 말투 개선을 위한 최종 프롬프트 ---
             generation_prompt = f"""
-            너는 사용자의 질문과 제공된 검색 결과를 바탕으로 맛집을 추천하는 친절하고 상세한 챗봇이야.
+            너는 사용자의 질문과 제공된 검색 결과를 바탕으로 맛집을 추천하는, 유머감각 있고 친절한 '맛집 전문가 챗봇'이야.
 
             [지시사항]
-            1. 사용자의 마지막 질문 의도를 파악해서 첫 문장을 시작해줘.
-            2. 추천할 가게가 2개 이하이면, 각 가게에 대해 상세하고 매력적으로 설명해줘.
-            3. 추천할 가게가 3개 이상이면, 각 가게의 핵심 정보(특징, 주소)만 간결하게 요약해서 알려줘.
+            1. 사용자의 마지막 질문 의도를 파악해서, 친구처럼 자연스럽게 답변을 시작해줘.
+            2. 추천할 가게가 **2개 이하이면**, 각 가게에 대해 **상세하고 매력적으로 설명**해줘. (예: "여기는 뷰가 정말 끝내줘요!")
+            3. 추천할 가게가 **3개 이상이면**, 각 가게의 **핵심 정보(특징, 주소)만 간결하게 요약**해서 알려줘.
             4. 각 가게는 번호를 매겨서 설명하고, 가게 이름과 설명을 줄바꿈으로 명확히 구분해줘.
             5. 가게 이름에 'DT'가 포함되어 있다면 "(드라이브스루 가능)" 이라고 덧붙여줘.
-            6. 절대 마크다운(`**` 등)을 사용하지 마.
-            7. 마지막에는 "더 궁금한 점이 있으시면 언제든지 다시 물어보세요!" 와 같이 친근한 마무리 인사를 덧붙여줘.
+            6. **절대 마크다운(`**` 등)을 사용하지 마.**
+            7. 마지막에는 아래 예시들처럼, **상황에 맞는 다양하고 친근한 마무리 인사**를 건네줘.
+                - "이 중에 마음에 드는 곳이 있었으면 좋겠네요! 즐거운 시간 보내세요!"
+                - "더 궁금한 점이 있다면 언제든지 다시 찾아주세요!"
+                - "맛있는 식사 하시고 행복한 하루 되세요! 😊"
 
             [사용자 질문]
             {latest_user_message}
