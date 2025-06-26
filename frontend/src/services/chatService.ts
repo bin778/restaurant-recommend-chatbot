@@ -15,10 +15,15 @@ const sendMessage = (sessionId: number | null, message: string) => {
   return api.post(`${API_URL}`, { sessionId, message });
 };
 
+const deleteChatSession = (sessionId: number) => {
+  return api.delete(`${API_URL}/sessions/${sessionId}`);
+};
+
 const chatService = {
   getChatSessions,
   getMessages,
   sendMessage,
+  deleteChatSession,
 };
 
 export default chatService;

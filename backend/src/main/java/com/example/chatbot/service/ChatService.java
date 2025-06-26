@@ -73,4 +73,14 @@ public class ChatService {
                 .map(log -> ChatDto.MessageInfo.builder().sender(log.getSender()).text(log.getMessage()).build())
                 .collect(Collectors.toList());
     }
+
+    public void deleteSession(Long sessionId, String userEmail) {
+        User user = userRepository.findByEmail(userEmail)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        ChatSession session = chatSessionRepository.findByIdAndUser(sessionId, user)
+                .orElseThrow(() -> new IllegalArgumentException("Session not found or permission denied"));
+
+        chatSessionRepository.delete(session);
+    }
 }

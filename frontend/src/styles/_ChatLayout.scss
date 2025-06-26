@@ -78,16 +78,16 @@
   overflow-y: auto;
 
   .session-item {
-    display: block;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     padding: 10px 12px;
     margin-bottom: 5px;
     border-radius: 8px;
     color: #ececec;
     text-decoration: none;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     font-size: 14px;
+    transition: background-color 0.2s;
 
     &:hover {
       background-color: #343541;
@@ -97,6 +97,37 @@
       background-color: #444654;
       font-weight: 700;
     }
+  }
+
+  // 텍스트가 길어질 경우 잘리도록 처리
+  span {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-grow: 1; // 텍스트 영역이 남은 공간을 모두 차지하도록
+  }
+}
+
+.delete-session-btn {
+  background: none;
+  border: none;
+  color: #8e8e8e;
+  cursor: pointer;
+  padding: 5px;
+  margin-left: 10px; // 텍스트와의 간격
+  border-radius: 4px;
+  opacity: 0; // 평소에는 투명하게
+  transition: opacity 0.2s, background-color 0.2s;
+  flex-shrink: 0; // 버튼 크기가 줄어들지 않도록
+
+  // 세션 아이템에 마우스를 올렸을 때만 보이도록
+  .session-item:hover & {
+    opacity: 1;
+  }
+
+  &:hover {
+    background-color: #555;
+    color: #fff;
   }
 }
 

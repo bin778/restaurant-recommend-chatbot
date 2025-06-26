@@ -40,4 +40,12 @@ public class ChatController {
         List<ChatDto.MessageInfo> messages = chatService.getMessages(sessionId, userDetails.getUsername());
         return ResponseEntity.ok(messages);
     }
+
+    @DeleteMapping("/sessions/{sessionId}")
+    public ResponseEntity<Void> deleteChatSession(
+            @PathVariable Long sessionId,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        chatService.deleteSession(sessionId, userDetails.getUsername());
+        return ResponseEntity.noContent().build(); // 성공 시 204 No Content 응답
+    }
 }
