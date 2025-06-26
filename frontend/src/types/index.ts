@@ -36,9 +36,16 @@ export interface DeleteAccountData {
   password: string;
 }
 
-// 채팅 메시지 데이터 타입
+// 채팅 메시지 타입
 export interface Message {
-  id?: number; // 화면에서만 사용하는 키, optional
+  id?: number; // React key를 위한 optional id
   sender: 'user' | 'bot';
   text: string;
+}
+
+// 채팅 세션 목록 조회 시 사용하는 타입
+export interface ChatSessionInfo {
+  sessionId: number;
+  title: string;
+  createdAt: string; // LocalDateTime은 보통 ISO 문자열로 전달
 }

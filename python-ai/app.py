@@ -7,11 +7,13 @@ from typing import List, Dict, Any
 from dotenv import load_dotenv
 import google.generativeai as genai
 
+## TODO: 사용자 별 대화 로그 구현
+## TODO: 음성인식 기능 구현
+
 # .env 로드 및 API 설정
 load_dotenv()
 app = FastAPI()
 genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
-# 요청하신 gemini-2.5-flash 모델을 사용합니다.
 model = genai.GenerativeModel('gemini-2.5-flash')
 NAVER_CLIENT_ID = os.environ.get("NAVER_CLIENT_ID")
 NAVER_CLIENT_SECRET = os.environ.get("NAVER_CLIENT_SECRET")
@@ -139,7 +141,7 @@ async def recommend_restaurant(request: RecommendRequest):
             [사용자 질문]: "{latest_user_message}"
             [검색된 맛집 정보]: {context_info}
             [너의 답변]:
-            """
+            """ 
             final_response = model.generate_content(generation_prompt)
             bot_reply = final_response.text
 

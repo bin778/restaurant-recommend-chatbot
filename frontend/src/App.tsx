@@ -8,6 +8,7 @@ import MyPage from './pages/MyPage.tsx';
 import UpdateProfilePage from './pages/UpdateProfilePage.tsx';
 import DeleteAccountPage from './pages/DeleteAccountPage.tsx';
 import ChatPage from './pages/ChatPage.tsx';
+import ChatLayoutPage from './pages/ChatLayoutPage';
 
 import authService from './services/authService.ts';
 import type { User } from './types'; // 공용 User 타입 임포트
@@ -72,10 +73,13 @@ const App: React.FC = () => {
         path="/chat"
         element={
           <PrivateRoute>
-            <ChatPage />
+            <ChatLayoutPage />
           </PrivateRoute>
         }
-      />
+      >
+        <Route index element={<ChatPage />} />
+        <Route path=":sessionId" element={<ChatPage />} />
+      </Route>
 
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
