@@ -6,22 +6,20 @@ import type { ChatSessionInfo } from '../types';
 
 const ChatLayoutPage: React.FC = () => {
   const [sessions, setSessions] = useState<ChatSessionInfo[]>([]);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
 
   const fetchSessions = useCallback(() => {
     chatService
       .getChatSessions()
-      .then(res => {
-        setSessions(res.data);
-      })
-      .catch(err => {
-        console.error('세션 목록을 불러오는데 실패했습니다.', err);
-      });
+      .then(res => setSessions(res.data))
+      .catch(err => console.error('세션 목록 로딩 실패:', err));
   }, []);
 
   useEffect(() => {
     fetchSessions();
+    setIsSidebarOpen(false); // 페이지 로드 시 사이드바 닫기
   }, [fetchSessions, location.pathname]);
 
   const handleNewChat = () => {
@@ -30,7 +28,13 @@ const ChatLayoutPage: React.FC = () => {
 
   return (
     <div className="chat-layout">
-      <aside className="chat-sidebar">
+      {isSidebarOpen && <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>}
+      <button className="mobile-menu-btn" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
+        <svg width="24" height="24" viewBox="0 0 24 24">
+          <path fill="currentColor" d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"></path>
+        </svg>
+      </button>
+      <aside className={`chat-sidebar ${isSidebarOpen ? 'open' : ''}`}>
         <button onClick={handleNewChat} className="new-chat-btn">
           + 새 대화 시작하기
         </button>
@@ -39,7 +43,7 @@ const ChatLayoutPage: React.FC = () => {
             <Link
               to={`/chat/${session.sessionId}`}
               key={session.sessionId}
-              className={`session-item ${location.pathname.includes(String(session.sessionId)) ? 'active' : ''}`}
+              className={`session-item ${location.pathname.endsWith(String(session.sessionId)) ? 'active' : ''}`}
             >
               {session.title}
             </Link>

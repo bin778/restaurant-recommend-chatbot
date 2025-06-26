@@ -1,32 +1,12 @@
 @use 'variables';
 @use 'mixins';
 
-.chat-page-container {
-  width: 100%;
-  height: 100vh;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: variables.$background-color;
-}
-
 .chat-window {
-  width: 100%;
-  height: 100%;
-  max-width: 800px; // 데스크탑 최대 너비
-  max-height: 90vh; // 데스크탑 최대 높이
   display: flex;
   flex-direction: column;
-  background: variables.$white-color;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
-  border-radius: 12px;
-  overflow: hidden;
-
-  // --- 모바일 반응형 ---
-  @include mixins.mobile {
-    max-height: 100vh;
-    border-radius: 0;
-  }
+  width: 100%;
+  height: 100%;
+  background-color: variables.$white-color;
 }
 
 .chat-header {
@@ -36,6 +16,7 @@
   text-align: center;
   background: #fff;
   z-index: 10;
+  flex-shrink: 0;
 
   h1 {
     margin: 0;
@@ -50,44 +31,56 @@
   overflow-y: auto;
 }
 
+.message-bubble-wrapper {
+  display: flex;
+  margin-bottom: 10px;
+  width: 100%;
+
+  &.bot {
+    justify-content: flex-start;
+  }
+  &.user {
+    justify-content: flex-end;
+  }
+}
+
 .message-bubble {
-  max-width: 70%;
+  max-width: 75%;
   padding: 10px 15px;
   border-radius: 18px;
-  margin-bottom: 10px;
-  clear: both;
 
   .message-text {
     white-space: pre-wrap;
     word-wrap: break-word;
+    line-height: 1.6;
   }
 
   &.bot-message {
     background-color: #f1f0f0;
-    float: left;
+    color: #333;
   }
-
   &.user-message {
     background-color: variables.$primary-color;
     color: white;
-    float: right;
   }
 }
 
 .chat-input-form {
   border-top: 1px solid #eee;
-  padding: 10px;
+  padding: 15px;
   background: #fff;
+  flex-shrink: 0;
 
   form {
     display: flex;
+    align-items: center;
   }
 
   input {
     flex-grow: 1;
     border: 1px solid #ddd;
     border-radius: 20px;
-    padding: 10px 15px;
+    padding: 12px 18px;
     font-size: 16px;
     &:focus {
       outline: none;
@@ -99,12 +92,14 @@
     background-color: variables.$primary-color;
     color: white;
     border: none;
-    border-radius: 10px;
-    width: 40px;
-    height: 40px;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
     margin-left: 10px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: 18px;
+    flex-shrink: 0;
+
     &:hover {
       background-color: variables.$primary-hover;
     }
@@ -115,21 +110,23 @@
   }
 }
 
-// 로딩 인디케이터 스타일
-.loading-indicator span {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background-color: #999;
-  margin: 0 2px;
-  animation: bounce 1.4s infinite ease-in-out both;
-
-  &:nth-child(1) {
-    animation-delay: -0.32s;
-  }
-  &:nth-child(2) {
-    animation-delay: -0.16s;
+.loading-indicator {
+  display: flex;
+  align-items: center;
+  span {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: #999;
+    margin: 0 2px;
+    animation: bounce 1.4s infinite ease-in-out both;
+    &:nth-child(1) {
+      animation-delay: -0.32s;
+    }
+    &:nth-child(2) {
+      animation-delay: -0.16s;
+    }
   }
 }
 

@@ -1,28 +1,61 @@
 @use 'variables';
+@use 'mixins';
 
 .chat-layout {
   display: flex;
   width: 100vw;
   height: 100vh;
-  background-color: #343541;
+  background-color: #343541; // 어두운 배경색
+  position: relative; // 모바일 메뉴 버튼 위치 기준
+}
+
+// 모바일에서 사이드바가 열렸을 때 뒤쪽 컨텐츠를 어둡게 처리하기 위한 오버레이
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 99;
+
+  @include mixins.mobile {
+    &.open {
+      display: block;
+    }
+  }
 }
 
 .chat-sidebar {
   width: 260px;
-  background-color: #202123;
+  background-color: #202123; // 사이드바 배경색
   color: #ececec;
   padding: 10px;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   border-right: 1px solid #3a3a3c;
+  transition: transform 0.3s ease-in-out;
+  z-index: 100;
 
-  @media (max-width: 767px) {
-    display: none;
+  // 모바일 반응형
+  @include mixins.mobile {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    transform: translateX(-100%); // 기본적으로 숨김
+    &.open {
+      transform: translateX(0); // open 클래스가 있으면 보임
+    }
   }
 }
 
 .new-chat-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   width: 100%;
   padding: 12px;
   margin-bottom: 20px;
@@ -32,6 +65,7 @@
   border-radius: 8px;
   text-align: left;
   font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
 
   &:hover {
@@ -71,4 +105,22 @@
   height: 100%;
   display: flex;
   flex-direction: column;
+}
+
+// 모바일용 햄버거 메뉴 버튼
+.mobile-menu-btn {
+  display: none;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  z-index: 110;
+  background: none;
+  border: none;
+  color: #8e8e8e;
+  padding: 5px;
+  cursor: pointer;
+
+  @include mixins.mobile {
+    display: block;
+  }
 }
