@@ -38,7 +38,7 @@ export interface DeleteAccountData {
 
 // 채팅 메시지 타입
 export interface Message {
-  id?: number; // React key를 위한 optional id
+  id?: number;
   sender: 'user' | 'bot';
   text: string;
 }
@@ -47,5 +47,5 @@ export interface Message {
 export interface ChatSessionInfo {
   sessionId: number;
   title: string;
-  createdAt: string; // LocalDateTime은 보통 ISO 문자열로 전달
+  createdAt: string;
 }

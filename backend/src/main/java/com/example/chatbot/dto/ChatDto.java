@@ -9,7 +9,8 @@ public class ChatDto {
     @Getter @Setter @NoArgsConstructor
     public static class PyChatRequest { private List<MessageDto> messages; }
 
-    @Getter @Setter public static class MessageDto { private String sender; private String text; }
+    @Getter @Setter @NoArgsConstructor
+    public static class MessageDto { private String sender; private String text; }
 
     // 프론트엔드와 통신할 때 사용하는 DTO
     @Getter @Setter public static class UserChatRequest { private Long sessionId; private String message; }

@@ -7,9 +7,6 @@ from typing import List, Dict, Any
 from dotenv import load_dotenv
 import google.generativeai as genai
 
-## TODO: 사용자 별 대화 로그 구현
-## TODO: 음성인식 기능 구현
-
 # .env 로드 및 API 설정
 load_dotenv()
 app = FastAPI()
@@ -90,7 +87,7 @@ async def recommend_restaurant(request: RecommendRequest):
         [지시사항]
         1. 'topics': 사용자가 언급한 음식, 브랜드, 맛(예: 매운, 달달한)을 **모두 리스트 형태**로 추출해줘.
         2. 'locations': 사용자가 마지막에 언급한 지역명 리스트야.
-        3. 'is_franchise': 'topics'에 '스타벅스', '프랭크버거'와 같은 명확한 프랜차이즈 이름이 포함되면 true로 설정해줘.
+        3. 'is_franchise': 'topics'에 '스타벅스', '프랭크버거', 'BHC'와 같이 명확한 프랜차이즈 이름이 포함되면 true로 설정해줘.
         4. 'exclude_list': 이전 챗봇 답변에서 이미 추천했던 가게 이름들의 리스트야.
         5. '비 오는 날' -> '파전, 칼국수', '우울한 날' -> '달달한 케이크, 매운 떡볶이' 처럼 상황을 검색 가능한 음식 키워드로 변환해서 'topics'에 추가해줘.
 
@@ -108,8 +105,7 @@ async def recommend_restaurant(request: RecommendRequest):
         all_search_items = []
         if keywords.get("locations"):
             for location in keywords["locations"]:
-                # 여러 토픽에 대해 각각 검색 수행
-                for topic in keywords.get("topics", []):
+                for topic in keywords.get("topics", ["맛집"]):
                     query_suffix = "" if keywords.get("is_franchise") else " 맛집"
                     search_query = f"{location} {topic}{query_suffix}"
                     search_results = search_naver_local(search_query.strip())
@@ -130,7 +126,7 @@ async def recommend_restaurant(request: RecommendRequest):
             너는 사용자의 감정까지 고려하여 맞춤형으로 추천하는, 다정다감한 맛집 큐레이터야.
 
             [지시사항]
-            1. [사용자 감성]을 반영하여, 따뜻하게 공감하는 첫인사로 답변을 시작해줘. (예: "비가 와서 기분이 꿀꿀하시군요. 그럴 땐 따뜻한 국물이 최고죠!")
+            1. [사용자 감성]을 반영하여, 따뜻하게 공감하는 첫인사로 답변을 시작해줘.
             2. '검색된 맛집 정보'를 바탕으로, 질문에 가장 적합한 가게를 최대 5곳까지 선정해서 번호를 매겨 설명해줘.
             3. 추천할 가게가 2개 이하이면, 각 가게에 대해 상세하고 매력적으로 설명해주고, 3개 이상이면 핵심 정보만 간결하게 요약해줘.
             4. 가게 이름에 'DT'가 포함되어 있다면 "(드라이브스루 가능)" 이라고 덧붙여줘.
@@ -141,7 +137,7 @@ async def recommend_restaurant(request: RecommendRequest):
             [사용자 질문]: "{latest_user_message}"
             [검색된 맛집 정보]: {context_info}
             [너의 답변]:
-            """ 
+            """
             final_response = model.generate_content(generation_prompt)
             bot_reply = final_response.text
 

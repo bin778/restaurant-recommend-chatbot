@@ -32,6 +32,9 @@ public class PythonChatService {
     }
 
     public String generateTitle(String firstMessage) {
+        if (firstMessage == null || firstMessage.isBlank()) {
+            return "새로운 대화";
+        }
         if (firstMessage.length() > 20) {
             return firstMessage.substring(0, 20) + "...";
         }

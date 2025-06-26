@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Outlet, useNavigate, Link, useLocation } from 'react-router-dom';
 import chatService from '../services/chatService';
-import '../styles/_ChatLayout.scss'; // SCSS 파일 임포트
+import '../styles/_ChatLayout.scss';
 import type { ChatSessionInfo } from '../types';
 
 const ChatLayoutPage: React.FC = () => {
@@ -20,7 +20,6 @@ const ChatLayoutPage: React.FC = () => {
       });
   }, []);
 
-  // 페이지가 로드되거나, 채팅방 URL이 바뀔 때마다 세션 목록을 다시 불러옵니다.
   useEffect(() => {
     fetchSessions();
   }, [fetchSessions, location.pathname]);
@@ -37,7 +36,6 @@ const ChatLayoutPage: React.FC = () => {
         </button>
         <nav className="session-list">
           {sessions.map(session => (
-            // a 태그 대신 react-router-dom의 Link 컴포넌트를 사용합니다.
             <Link
               to={`/chat/${session.sessionId}`}
               key={session.sessionId}
@@ -49,7 +47,6 @@ const ChatLayoutPage: React.FC = () => {
         </nav>
       </aside>
       <main className="chat-content">
-        {/* 자식 라우트(ChatPage)가 여기에 렌더링됩니다. */}
         <Outlet />
       </main>
     </div>

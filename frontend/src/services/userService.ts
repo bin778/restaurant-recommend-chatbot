@@ -1,28 +1,24 @@
 import api from './api';
-import type { ChatSessionInfo, Message } from '../types';
+import type { UserInfo, UpdateProfileData, DeleteAccountData } from '../types';
 
-const API_URL = '/api/chat';
+const API_URL = '/api/users/';
 
-// 사용자의 모든 채팅 세션 목록 조회
-const getChatSessions = () => {
-  return api.get<ChatSessionInfo[]>(`${API_URL}/sessions`);
+const getMyInfo = () => {
+  return api.get<UserInfo>(API_URL + 'me');
 };
 
-// 특정 세션의 모든 메시지 조회
-const getMessages = (sessionId: number) => {
-  return api.get<Message[]>(`${API_URL}/${sessionId}/messages`);
+const updateMyInfo = (data: UpdateProfileData) => {
+  return api.put(API_URL + 'me', data);
 };
 
-// 새 메시지 전송 (및 새 세션 생성)
-const sendMessage = (sessionId: number | null, message: string) => {
-  // 백엔드의 UserChatRequest DTO 형식에 맞춰 데이터를 보냅니다.
-  return api.post(`${API_URL}`, { sessionId, message });
+const deleteMyAccount = (data: DeleteAccountData) => {
+  return api.delete(API_URL + 'me', { data });
 };
 
-const chatService = {
-  getChatSessions,
-  getMessages,
-  sendMessage,
+const userService = {
+  getMyInfo,
+  updateMyInfo,
+  deleteMyAccount,
 };
 
-export default chatService;
+export default userService;

@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
+@Table(name = "chat_log")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ChatLog {

@@ -21,7 +21,7 @@ public class ChatService {
 
     public ChatDto.ChatResponse processMessage(String userEmail, ChatDto.UserChatRequest request) {
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found: " + userEmail));
 
         ChatSession session;
 
@@ -31,7 +31,7 @@ public class ChatService {
             chatSessionRepository.save(session);
         } else {
             session = chatSessionRepository.findByIdAndUser(request.getSessionId(), user)
-                    .orElseThrow(() -> new IllegalArgumentException("Invalid session ID or permission denied"));
+                    .orElseThrow(() -> new IllegalArgumentException("Session not found or permission denied"));
         }
 
         chatLogRepository.save(ChatLog.builder().chatSession(session).sender("user").message(request.getMessage()).build());

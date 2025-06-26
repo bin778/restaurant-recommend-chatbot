@@ -4,18 +4,22 @@
   display: flex;
   width: 100vw;
   height: 100vh;
-  background-color: #343541; // 어두운 배경색
+  background-color: #343541;
 }
 
 .chat-sidebar {
   width: 260px;
-  background-color: #202123; // 사이드바 배경색
+  background-color: #202123;
   color: #ececec;
   padding: 10px;
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
   border-right: 1px solid #3a3a3c;
+
+  @media (max-width: 767px) {
+    display: none;
+  }
 }
 
 .new-chat-btn {
@@ -28,9 +32,7 @@
   border-radius: 8px;
   text-align: left;
   font-size: 14px;
-  font-weight: 500;
   cursor: pointer;
-  transition: background-color 0.2s;
 
   &:hover {
     background-color: #343541;
@@ -40,17 +42,6 @@
 .session-list {
   flex-grow: 1;
   overflow-y: auto;
-  // 스크롤바 디자인 (선택 사항)
-  &::-webkit-scrollbar {
-    width: 6px;
-  }
-  &::-webkit-scrollbar-thumb {
-    background: #555;
-    border-radius: 3px;
-  }
-  &::-webkit-scrollbar-track {
-    background: transparent;
-  }
 
   .session-item {
     display: block;
@@ -63,14 +54,12 @@
     overflow: hidden;
     text-overflow: ellipsis;
     font-size: 14px;
-    transition: background-color 0.2s;
 
     &:hover {
       background-color: #343541;
     }
 
     &.active {
-      // 현재 활성화된 세션
       background-color: #444654;
       font-weight: 700;
     }
