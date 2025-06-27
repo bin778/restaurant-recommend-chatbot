@@ -45,3 +45,10 @@ application-local.properties
 # .DS_Store
 .DS_Store
 **/.DS_Store
+.idea/
+*.iml
+
+# SSL Certificates
+# 로컬 개발용 인증서는 각 개발자가 직접 생성해야 합니다.
+*.pem
+*.p12

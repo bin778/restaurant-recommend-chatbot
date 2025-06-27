@@ -11,7 +11,7 @@
 
 .chat-header {
   position: relative;
-  padding: 15px 20px;
+  padding: 15px 60px;
   border-bottom: 1px solid #eee;
   text-align: center;
   background: #fff;
@@ -20,8 +20,8 @@
 
   h1 {
     margin: 0;
-    font-size: 18px;
-    font-weight: 700;
+    font-size: 16px;
+    font-weight: 600;
   }
 }
 
@@ -33,7 +33,7 @@
 
 .message-bubble-wrapper {
   display: flex;
-  margin-bottom: 10px;
+  margin-bottom: 12px;
   width: 100%;
 
   &.bot {
@@ -46,8 +46,9 @@
 
 .message-bubble {
   max-width: 75%;
-  padding: 10px 15px;
-  border-radius: 18px;
+  padding: 12px 18px;
+  border-radius: 22px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 
   .message-text {
     white-space: pre-wrap;
@@ -58,61 +59,19 @@
   &.bot-message {
     background-color: #f1f0f0;
     color: #333;
+    border-bottom-left-radius: 4px;
   }
   &.user-message {
     background-color: variables.$primary-color;
     color: white;
-  }
-}
-
-.chat-input-form {
-  border-top: 1px solid #eee;
-  padding: 15px;
-  background: #fff;
-  flex-shrink: 0;
-
-  form {
-    display: flex;
-    align-items: center;
-  }
-
-  input {
-    flex-grow: 1;
-    border: 1px solid #ddd;
-    border-radius: 20px;
-    padding: 12px 18px;
-    font-size: 16px;
-    &:focus {
-      outline: none;
-      border-color: variables.$primary-color;
-    }
-  }
-
-  button {
-    background-color: variables.$primary-color;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 44px;
-    height: 44px;
-    margin-left: 10px;
-    cursor: pointer;
-    font-size: 18px;
-    flex-shrink: 0;
-
-    &:hover {
-      background-color: variables.$primary-hover;
-    }
-    &:disabled {
-      background-color: #ccc;
-      cursor: not-allowed;
-    }
+    border-bottom-right-radius: 4px;
   }
 }
 
 .loading-indicator {
   display: flex;
   align-items: center;
+  padding: 12px 18px; // 말풍선과 크기를 맞춤
   span {
     display: inline-block;
     width: 8px;
@@ -130,6 +89,87 @@
   }
 }
 
+.chat-input-form {
+  border-top: 1px solid #eee;
+  padding: 15px;
+  background: #fff;
+  flex-shrink: 0;
+
+  form {
+    display: flex;
+    align-items: center;
+    gap: 10px; // 버튼들과 입력창 사이의 간격
+  }
+}
+
+// 마이크 버튼 스타일 (왼쪽 배치)
+.mic-btn {
+  flex-shrink: 0; // 버튼 크기 고정
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  color: #888;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.2s, background-color 0.2s;
+
+  &:hover {
+    background-color: #f0f0f0;
+  }
+
+  // 듣고 있을 때 (활성화 상태) 스타일
+  &.listening {
+    color: variables.$primary-color;
+    animation: pulse 1.5s infinite;
+  }
+}
+
+// 입력창을 감싸는 래퍼
+.input-wrapper {
+  flex-grow: 1; // 남은 공간을 모두 차지
+  display: flex;
+
+  input {
+    width: 100%;
+    border: none;
+    background-color: #f1f0f0;
+    border-radius: 22px;
+    padding: 12px 18px; // 내부 여백
+    font-size: 16px;
+    &:focus {
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(variables.$primary-color, 0.2);
+    }
+  }
+}
+
+// 전송 버튼 스타일
+.send-btn {
+  flex-shrink: 0;
+  background-color: variables.$primary-color;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 44px;
+  height: 44px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: variables.$primary-hover;
+  }
+  &:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+}
+
 @keyframes bounce {
   0%,
   80%,
@@ -138,5 +178,17 @@
   }
   40% {
     transform: scale(1);
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(variables.$primary-color, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(variables.$primary-color, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(variables.$primary-color, 0);
   }
 }

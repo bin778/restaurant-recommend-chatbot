@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition'; // react-speech-recognition 직접 임포트
 import chatService from '../services/chatService';
 import '../styles/_chat.scss';
 import type { Message } from '../types';
@@ -14,37 +15,59 @@ const ChatPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messageListRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const loadChat = async () => {
-      setIsLoading(true);
-      const welcomeMessage: Message = {
-        id: Date.now(),
-        sender: 'bot',
-        text: '안녕하세요~ 원하는 맛집을 찾고 싶으신건가요? 제가 도와드릴게요!',
-      };
+  // 1. 음성 인식 훅 로직을 컴포넌트 내부로 가져옵니다.
+  const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } = useSpeechRecognition();
 
-      if (sessionId) {
-        try {
-          const res = await chatService.getMessages(Number(sessionId));
-          const initialMessages = res.data.map((msg, i) => ({ ...msg, id: i }));
-          setMessages(initialMessages);
-        } catch (error) {
-          console.error('메시지 로딩 실패:', error);
-          setMessages([{ ...welcomeMessage, text: '대화 기록을 불러오는 데 실패했습니다.' }]);
-        }
-      } else {
-        setMessages([welcomeMessage]);
-      }
-      setIsLoading(false);
-    };
-    loadChat();
-  }, [sessionId]);
+  // 2. 음성 인식을 시작하는 함수를 직접 정의합니다.
+  const startListening = () => {
+    resetTranscript();
+    // continuous: false 로 설정하여 말이 끝나면 자동으로 인식을 종료시킵니다.
+    SpeechRecognition.startListening({ continuous: false, language: 'ko-KR' });
+  };
+
+  const stopListening = () => {
+    SpeechRecognition.stopListening();
+  };
+
+  // 음성 인식이 종료되면 인식된 텍스트를 입력창에 채워줍니다.
+  useEffect(() => {
+    if (!listening && transcript) {
+      setInputValue(prev => (prev ? prev + ' ' + transcript : transcript));
+      resetTranscript();
+    }
+  }, [listening, transcript, resetTranscript]);
 
   useEffect(() => {
     if (messageListRef.current) {
       messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
     }
   }, [messages]);
+
+  const loadChat = useCallback(async () => {
+    const welcomeMessage: Message = {
+      id: Date.now(),
+      sender: 'bot',
+      text: '안녕하세요! 맛집 추천 챗봇입니다. 무엇을 도와드릴까요?',
+    };
+    if (sessionId) {
+      setIsLoading(true);
+      try {
+        const res = await chatService.getMessages(Number(sessionId));
+        setMessages(res.data.map((msg, i) => ({ ...msg, id: msg.id || i })));
+      } catch (error) {
+        console.error('대화 기록 로딩 실패:', error);
+        setMessages([{ ...welcomeMessage, text: '대화 기록을 불러오는 데 실패했습니다.' }]);
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      setMessages([welcomeMessage]);
+    }
+  }, [sessionId]);
+
+  useEffect(() => {
+    loadChat();
+  }, [loadChat]);
 
   const handleSendMessage = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -54,28 +77,26 @@ const ChatPage: React.FC = () => {
     const currentSessionId = sessionId ? Number(sessionId) : null;
     const userMessage: Message = { id: Date.now(), text: userMessageText, sender: 'user' };
 
-    // 화면에 사용자 메시지를 즉시 추가 (사용자 경험 향상)
     setMessages(prev => [...prev, userMessage]);
     setInputValue('');
     setIsLoading(true);
 
     try {
-      // --- 이 부분이 핵심적인 수정 사항입니다 ---
-      // chatService에 (sessionId, 메시지 텍스트) 두 개의 인수를 올바르게 전달합니다.
       const response = await chatService.sendMessage(currentSessionId, userMessageText);
-
       const newSessionId = response.data.sessionId;
-      const botMessage: Message = { id: Date.now() + 1, text: response.data.reply, sender: 'bot' };
+      const botMessage: Message = {
+        id: response.data.logId || Date.now() + 1,
+        text: response.data.reply,
+        sender: 'bot',
+      };
 
-      // 서버 응답을 메시지 목록에 추가합니다.
       setMessages(prev => [...prev, botMessage]);
 
-      // 새 대화였다면, 응답으로 받은 새 세션 ID로 URL을 변경합니다.
       if (!currentSessionId && newSessionId) {
         navigate(`/chat/${newSessionId}`, { replace: true });
       }
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('메시지 전송 실패:', error);
       const errorMessage: Message = {
         id: Date.now() + 1,
         text: '죄송합니다, 답변 생성 중 오류가 발생했습니다.',
@@ -86,6 +107,20 @@ const ChatPage: React.FC = () => {
       setIsLoading(false);
     }
   };
+
+  // 마이크 버튼 클릭 시, 듣고 있지 않을 때만 인식을 시작합니다.
+  const handleMicClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    if (listening) {
+      stopListening(); // 듣고 있을 때 누르면 수동으로 중지 (예외 처리)
+    } else {
+      startListening();
+    }
+  };
+
+  if (!browserSupportsSpeechRecognition) {
+    return <span>이 브라우저는 음성 인식을 지원하지 않습니다. Chrome 브라우저를 권장합니다.</span>;
+  }
 
   return (
     <div className="chat-window">
@@ -103,7 +138,7 @@ const ChatPage: React.FC = () => {
         ))}
         {isLoading && (
           <div className="message-bubble-wrapper bot">
-            <div className="message-bubble loading-indicator">
+            <div className="message-bubble bot-message loading-indicator">
               <span></span>
               <span></span>
               <span></span>
@@ -113,17 +148,25 @@ const ChatPage: React.FC = () => {
       </main>
       <footer className="chat-input-form">
         <form onSubmit={handleSendMessage}>
-          <input
-            type="text"
-            value={inputValue}
-            onChange={e => setInputValue(e.target.value)}
-            placeholder="메시지를 입력하세요..."
-            disabled={isLoading}
-          />
-          <button type="submit" disabled={isLoading}>
-            {/* 전송 아이콘 SVG */}
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M2.01 21L23 12L2.01 3L2 10L17 12L2 14L2.01 21Z" fill="currentColor" />
+          <button type="button" onClick={handleMicClick} className={`mic-btn ${listening ? 'listening' : ''}`}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z" />
+            </svg>
+          </button>
+
+          <div className="input-wrapper">
+            <input
+              type="text"
+              value={inputValue}
+              onChange={e => setInputValue(e.target.value)}
+              placeholder={listening ? '듣고 있어요...' : '메시지를 입력하세요...'}
+              disabled={isLoading}
+            />
+          </div>
+
+          <button type="submit" disabled={isLoading || !inputValue} className="send-btn">
+            <svg width="24" height="24" viewBox="0 0 24" fill="currentColor">
+              <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2 .01 7z" />
             </svg>
           </button>
         </form>
