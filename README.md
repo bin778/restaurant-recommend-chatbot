@@ -181,31 +181,123 @@
 
 - `backend/src/main/resources/application-local.properties`
 - `python-ai/.env`
-- `restaurant_chatbot_db`
+- `restaurant_chatbot_db` 쿼리문 생성 요령
+```
+-- =================================================================
+-- 1. 데이터베이스 생성 및 선택
+-- =================================================================
+-- 만약 'restaurant_chatbot_db' 데이터베이스가 존재하지 않으면 생성합니다.
+-- 문자 인코딩은 한글 및 이모지 지원을 위해 'utf8mb4'로 설정합니다.
+CREATE DATABASE IF NOT EXISTS restaurant_chatbot_db
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
 
-### 8-3. 서버 실행
+-- 생성한 데이터베이스를 사용합니다.
+USE restaurant_chatbot_db;
+
+
+-- =================================================================
+-- 2. 'user' 테이블 생성 (사용자 정보)
+-- =================================================================
+CREATE TABLE IF NOT EXISTS user (
+    `id`         BIGINT       NOT NULL AUTO_INCREMENT, -- 사용자 고유 ID
+    `email`      VARCHAR(255) NOT NULL UNIQUE,       -- 이메일 (로그인 ID로 사용, 중복 불가)
+    `password`   VARCHAR(255) NOT NULL,              -- 해싱된 비밀번호
+    `nickname`   VARCHAR(255) NOT NULL UNIQUE,       -- 닉네임 (중복 불가)
+    `created_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 가입일
+    PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+-- =================================================================
+-- 3. 'chat_session' 테이블 생성 (채팅 대화방 정보)
+-- =================================================================
+CREATE TABLE IF NOT EXISTS chat_session (
+    `id`         BIGINT       NOT NULL AUTO_INCREMENT, -- 채팅 세션 고유 ID
+    `user_id`    BIGINT       NOT NULL,                 -- 이 세션을 소유한 사용자의 ID
+    `title`      VARCHAR(255) NOT NULL,              -- 채팅방 제목 (예: "가산디지털단지 맛집")
+    `created_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 생성일
+    PRIMARY KEY (`id`),
+    -- 'user' 테이블의 id를 참조하는 외래키. 사용자가 삭제되면 관련 채팅 세션도 함께 삭제됩니다.
+    FOREIGN KEY (`user_id`) REFERENCES user(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+-- =================================================================
+-- 4. 'chat_log' 테이블 생성 (개별 메시지 기록)
+-- =================================================================
+CREATE TABLE IF NOT EXISTS chat_log (
+    `id`         BIGINT   NOT NULL AUTO_INCREMENT, -- 메시지 고유 ID
+    `session_id` BIGINT   NOT NULL,                 -- 이 메시지가 속한 채팅 세션의 ID
+    `sender`     VARCHAR(50) NOT NULL,              -- 발신자 ('user' 또는 'bot')
+    `message`    TEXT     NOT NULL,                 -- 메시지 내용
+    `created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, -- 메시지 생성 시간
+    PRIMARY KEY (`id`),
+    -- 'chat_session' 테이블의 id를 참조하는 외래키. 채팅 세션이 삭제되면 관련 메시지도 모두 삭제됩니다.
+    FOREIGN KEY (`session_id`) REFERENCES chat_session(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+```
+
+### 8-3. 서버 실행 방법
 
 ```bash
+# 최초 1회 설정 (SSL 인증서 생성)
+# 프로젝트를 처음 설정하거나 인증서가 없는 경우에만 이 단계를 진행
+
+# 1. 프론트엔드 인증서 생성
+# frontend 폴더로 이동
+cd frontend
+
+# 로컬 환경용 SSL 인증서 생성 (mkcert 필요)
+# brew install mkcert && mkcert -install
+mkcert localhost 127.0.0.1 ::1 <컴퓨터-내부-IP>
+
+2. 백엔드 인증서 생성
+# backend 폴더로 이동
+cd backend
+
+# 백엔드용 SSL 인증서 생성
+mkcert localhost <컴퓨터-내부-IP>
+
+# .pem 파일을 .p12 파일로 변환
+openssl pkcs12 -export \
+-in src/main/resources/localhost+1.pem \
+-inkey src/main/resources/localhost+1-key.pem \
+-out src/main/resources/localhost+1.p12 \
+-name "<인증서-별명>" \
+-passout pass:changeit
+
+# (참고: 파일명과 별명은 생성된 실제 값에 맞게 조정하세요.)
+
 # 1. 백엔드 서버 실행
 cd backend
+# Spring Boot 서버 실행 (포트: 8443)
 ./mvnw spring-boot:run
 
 # 2. (다른 터미널에서) 프론트엔드 서버 실행
+# frontend 폴더로 이동
 cd frontend
+
+# 의존성 설치 (최초 1회)
 npm install
+
+# Vite 개발 서버 실행 (포트: 5173)
 npm run dev
 
 # 3. (다른 터미널에서) Python AI 서버 실행
-#    먼저 가상환경을 생성하고 활성화
+# python-ai 폴더로 이동
 cd python-ai
+
+# 가상환경 생성 및 활성화 (최초 1회)
 python3 -m venv venv
 source venv/bin/activate
 
-#    의존성 설치
+# 의존성 설치 (최초 1회 또는 변경 시)
 pip install -r requirements.txt
 
-#    FastAPI 서버를 실행
+# FastAPI 서버 실행 (포트: 8000)
 uvicorn app:app --host 0.0.0.0 --port 8000 --reload
 
-# 4. 웹 브라우저에서 프론트엔드 주소(http://localhost:5173)로 접속할 것!!
+# 4. https://<컴퓨터-내부-IP>:5173 주소로 접속
+# 주의: http://localhost:5173 로 접속하면 마이크 권한 문제 및 CORS 에러 발생!
 ```
