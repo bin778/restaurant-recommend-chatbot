@@ -5,6 +5,8 @@ import chatService from '../services/chatService';
 import '../styles/_chat.scss';
 import type { Message } from '../types';
 import BackButton from '../components/BackButton';
+// TODO: Chrome이 아닐 경우 Chrome만 가능하다는 메시지 alert 추가
+// TODO: 뒤로가기 할 때 바로 root(/)로 넘어오도록 수정
 
 const ChatPage: React.FC = () => {
   const { sessionId } = useParams<{ sessionId?: string }>();

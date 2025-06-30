@@ -36,8 +36,6 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // DaoAuthenticationProvider를 Bean으로 등록하여 인증 로직을 명시적으로 구성
-    // UserService를 파라미터로 주입받아 순환 참조를 끊음
     @Bean
     public DaoAuthenticationProvider authenticationProvider(UserService userService) {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
@@ -54,7 +52,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("https://localhost:5173", "https://192.168.0.103:5173", "https://192.168.0.104:5173")); // 테스트 IP 추가 입력
+        // 실제 운영 환경에서는 필요한 도메인만 허용하는 것이 안전합니다.
+        configuration.setAllowedOrigins(List.of("https://localhost:5173", "https://192.168.0.103:5173", "https://192.168.0.104:5173"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
@@ -73,17 +72,26 @@ public class SecurityConfig {
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
+                // --- [수정] API 경로별 접근 권한 설정 ---
                 .authorizeHttpRequests(authz ->
-                        authz.requestMatchers("/api/auth/**").permitAll()
+                        authz
+                                // 아래에 명시된 주소들은 로그인 없이도 누구나 접근 가능합니다.
+                                .requestMatchers(
+                                        "/",
+                                        "/error",
+                                        "/api/auth/signup",
+                                        "/api/auth/login",
+                                        "/api/auth/refresh",
+                                        "/api/auth/logout",  // 로그아웃 API 허용
+                                        "/api/recommend"     // 챗봇 추천 API 허용 (선택 사항)
+                                ).permitAll()
+                                // 위에서 허용한 주소를 제외한 모든 요청은 인증이 필요합니다.
                                 .anyRequest().authenticated()
                 )
 
-                // 보안 헤더 설정 추가
                 .headers(headers -> headers
                         .addHeaderWriter(new XFrameOptionsHeaderWriter(XFrameOptionsHeaderWriter.XFrameOptionsMode.DENY))
                 )
-
-                // 주입받은 AuthenticationProvider를 SecurityFilterChain에 등록
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
         return http.build();

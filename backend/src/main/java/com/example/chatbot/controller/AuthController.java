@@ -106,6 +106,20 @@ public class AuthController {
         return ResponseEntity.ok(responseDto);
     }
 
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(HttpServletResponse response) {
+        Cookie cookie = new Cookie("refreshToken", null);
+
+        cookie.setMaxAge(0);
+
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true); // HTTPS 환경이므로 true
+        cookie.setPath("/");
+
+        response.addCookie(cookie);
+        return ResponseEntity.ok("로그아웃 되었습니다.");
+    }
+
     private String getClientIP(HttpServletRequest request) {
         String xfHeader = request.getHeader("X-Forwarded-For");
         if (xfHeader == null) {

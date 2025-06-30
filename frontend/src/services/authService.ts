@@ -22,17 +22,21 @@ const login = async (data: LoginData): Promise<User> => {
 const refresh = async (): Promise<User> => {
   const response = await api.post<User>(API_URL + '/refresh');
   if (response.data.accessToken) {
-    // 1. 갱신된 사용자 정보도 localStorage에 저장합니다.
     localStorage.setItem('user', JSON.stringify(response.data));
   }
   return response.data;
 };
 
 // 로그아웃
-const logout = (): void => {
-  // 2. localStorage에서 사용자 정보를 제거합니다.
-  localStorage.removeItem('user');
-  // TODO: 추후 /api/auth/logout 엔드포인트를 호출하여 서버 측 쿠키도 제거
+const logout = async (): Promise<void> => {
+  try {
+    // 백엔드의 /logout 엔드포인트를 호출하여 서버 측 쿠키를 만료시킴
+    await api.post(API_URL + '/logout');
+  } catch (error) {
+    console.error('서버 로그아웃 중 오류 발생:', error);
+  } finally {
+    localStorage.removeItem('user');
+  }
 };
 
 // 현재 사용자 정보 가져오기

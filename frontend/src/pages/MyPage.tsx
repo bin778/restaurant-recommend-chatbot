@@ -9,7 +9,7 @@ interface MyPageProps {
   onLogout: () => void;
 }
 
-const MyPage: React.FC<MyPageProps> = ({ onLogout }) => {
+const MyPage: React.FC<MyPageProps> = () => {
   const currentUser = authService.getCurrentUser();
 
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
@@ -73,9 +73,6 @@ const MyPage: React.FC<MyPageProps> = ({ onLogout }) => {
         )}
 
         {/* Link 대신 button과 onLogout 함수를 사용 */}
-        <button onClick={onLogout} className="btn btn-secondary">
-          로그아웃
-        </button>
         <Link to="/delete-account" className="btn btn-danger">
           계정 탈퇴
         </Link>
