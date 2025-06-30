@@ -1,22 +1,25 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import '../styles/_BackButton.scss'; // 뒤로가기 버튼 전용 스타일 임포트
+import '../styles/_BackButton.scss';
 
 const BackButton: React.FC = () => {
   const navigate = useNavigate();
 
-  const goBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate('/');
-    }
-  };
-
   return (
-    <button onClick={goBack} className="back-button">
-      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M15.41 7.41L14 6L8 12L14 18L15.41 16.59L10.83 12L15.41 7.41Z" fill="currentColor" />
+    <button className="back-button" onClick={() => navigate(-1)} aria-label="Go back">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="M19 12H5" />
+        <path d="M12 19l-7-7 7-7" />
       </svg>
     </button>
   );

@@ -4,7 +4,7 @@ import adminService from '../services/adminService';
 import authService from '../services/authService';
 import type { AdminUserInfo } from '../types';
 import '../styles/_admin.scss';
-import { AxiosError } from 'axios'; // AxiosError 임포트
+import { AxiosError } from 'axios';
 
 const AdminPage: React.FC = () => {
   const [users, setUsers] = useState<AdminUserInfo[]>([]);
