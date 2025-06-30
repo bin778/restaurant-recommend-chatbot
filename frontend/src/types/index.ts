@@ -3,6 +3,7 @@ export interface User {
   accessToken: string;
   grantType: string;
   nickname: string;
+  role: string;
 }
 
 // 회원가입 요청 시 보내는 데이터 타입

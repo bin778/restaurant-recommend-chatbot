@@ -1,5 +1,6 @@
 package com.example.chatbot.service;
 
+import com.example.chatbot.domain.Role;
 import com.example.chatbot.domain.User;
 import com.example.chatbot.dto.UserDto;
 import com.example.chatbot.repository.UserRepository;
@@ -11,6 +12,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.Collections;
 import java.util.regex.Pattern;
@@ -43,7 +45,7 @@ public class UserService implements UserDetailsService {
                 .email(dto.getEmail())
                 .password(passwordEncoder.encode(dto.getPassword()))
                 .nickname(dto.getNickname())
-                .role("ROLE_USER")
+                .role(Role.ROLE_USER)
                 .build();
 
         return userRepository.save(user).getId();
@@ -91,9 +93,11 @@ public class UserService implements UserDetailsService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + email));
 
-        return new org.springframework.security.core.userdetails.User(user.getEmail(),
+        return new org.springframework.security.core.userdetails.User(
+                user.getEmail(),
                 user.getPassword(),
-                Collections.singletonList(() -> user.getRole()));
+                Collections.singletonList(new SimpleGrantedAuthority(user.getRole().name()))
+        );
     }
 
     // 이메일로 User 엔티티를 찾는 public 메서드 추가

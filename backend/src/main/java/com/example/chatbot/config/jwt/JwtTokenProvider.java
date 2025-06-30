@@ -43,16 +43,19 @@ public class JwtTokenProvider {
         this.secretKey = Keys.hmacShaKeyFor(keyBytes);
     }
 
-    // 토큰 생성 로직 분리
-    public String createAccessToken(String userPk, String nickname) {
-        return createToken(userPk, nickname, accessTokenValidityInSeconds);
+    // 토큰 생성 메소드에 role 파라미터 추가
+    public String createAccessToken(String userPk, String nickname, String role) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("nickname", nickname);
+        claims.put("role", role); // role 정보를 클레임에 추가
+        return createToken(userPk, claims, accessTokenValidityInSeconds);
     }
 
     public String createRefreshToken(String userPk) {
         return createToken(userPk, null, refreshTokenValidityInSeconds);
     }
 
-    private String createToken(String userPk, String nickname, long validityInSeconds) {
+    private String createToken(String userPk, Map<String, Object> claims, long validityInSeconds) {
         Date now = new Date();
         Date validity = new Date(now.getTime() + TimeUnit.SECONDS.toMillis(validityInSeconds));
 
@@ -62,20 +65,18 @@ public class JwtTokenProvider {
                 .expiration(validity)
                 .signWith(secretKey);
 
-        if (nickname != null) {
-            builder.claim("nickname", nickname);
+        if (claims != null) {
+            builder.claims(claims);
         }
 
         return builder.compact();
     }
 
-    // JWT 토큰에서 인증 정보 조회
     public Authentication getAuthentication(String token) {
         UserDetails userDetails = userDetailsService.loadUserByUsername(this.getUserPk(token));
         return new UsernamePasswordAuthenticationToken(userDetails, "", userDetails.getAuthorities());
     }
 
-    // 토큰에서 회원 정보 추출 (Subject)
     public String getUserPk(String token) {
         return Jwts.parser()
                 .verifyWith(secretKey)
@@ -85,7 +86,6 @@ public class JwtTokenProvider {
                 .getSubject();
     }
 
-    // 토큰의 유효성 + 만료일자 확인
     public boolean validateToken(String jwtToken) {
         try {
             Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(jwtToken);

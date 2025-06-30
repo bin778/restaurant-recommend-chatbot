@@ -16,8 +16,9 @@ public class AuthDto {
     @Getter
     @Builder
     public static class LoginResponse {
-        private String grantType; // "Bearer"
+        private String grantType;
         private String accessToken;
         private String nickname;
+        private String role;
     }
 }
