@@ -1,24 +1,27 @@
 import api from './api';
 import type { UserInfo, UpdateProfileData, DeleteAccountData } from '../types';
 
-const API_URL = '/api/users/';
+const API_URL = '/api/users';
 
+// 내 정보 조회
 const getMyInfo = () => {
-  return api.get<UserInfo>(API_URL + 'me');
+  return api.get<UserInfo>(`${API_URL}/me`);
 };
 
-const updateMyInfo = (data: UpdateProfileData) => {
-  return api.put(API_URL + 'me', data);
+// 프로필 수정
+const updateProfile = (data: UpdateProfileData) => {
+  return api.put(`${API_URL}/me`, data);
 };
 
-const deleteMyAccount = (data: DeleteAccountData) => {
-  return api.delete(API_URL + 'me', { data });
+// 회원 탈퇴
+const deleteAccount = (data: DeleteAccountData) => {
+  return api.post(`${API_URL}/delete`, data);
 };
 
 const userService = {
   getMyInfo,
-  updateMyInfo,
-  deleteMyAccount,
+  updateProfile,
+  deleteAccount,
 };
 
 export default userService;

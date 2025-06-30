@@ -27,24 +27,22 @@ api.interceptors.response.use(
   async err => {
     const originalConfig = err.config;
 
-    // 1. 로그인, 회원가입 요청 실패 시에는 재발급 시도 안 함 (무한 루프 방지)
-    if (originalConfig.url.includes('/auth/login') || originalConfig.url.includes('/auth/signup')) {
+    // 로그인, 회원가입, 그리고 "회원 탈퇴" 요청 실패 시에는 재발급을 시도 X
+    const publicUrls = ['/auth/login', '/auth/signup', '/users/delete'];
+    if (publicUrls.some(url => originalConfig.url.includes(url))) {
       return Promise.reject(err);
     }
 
-    // 2. 401 에러이고, 아직 재시도하지 않은 요청일 경우
+    // 401 에러이고, 아직 재시도하지 않은 요청일 경우
     if (err.response?.status === 401 && !originalConfig._retry) {
       originalConfig._retry = true;
 
       try {
-        // 3. 토큰 재발급 시도
         await authService.refresh();
-        // 4. 재발급 성공 시, 실패했던 원래 요청을 다시 시도
         return api(originalConfig);
       } catch (_error) {
-        // 5. 재발급 실패 시, 로그아웃 처리
         authService.logout();
-        window.location.href = '/login'; // 로그인 페이지로 이동
+        window.location.href = '/login';
         return Promise.reject(_error);
       }
     }

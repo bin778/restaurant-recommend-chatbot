@@ -1,47 +1,74 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import userService from '../services/userService';
-import authService from '../services/authService';
+import { AxiosError } from 'axios';
 
 const DeleteAccountPage: React.FC = () => {
-  const navigate = useNavigate();
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
-  const handleDelete = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true);
     setError('');
 
-    if (!window.confirm('정말로 계정을 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+    if (!window.confirm('정말로 계정을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.')) {
+      setLoading(false);
       return;
     }
 
-    // TODO: 비밀번호가 틀릴 때 메시지 창이 안나오는 문제 해결
     try {
-      await userService.deleteMyAccount({ password });
-      authService.logout();
-      navigate('/login', { state: { message: '회원 탈퇴가 완료되었습니다.' } });
-    } catch (err: any) {
-      setError(err.response?.data || '계정 탈퇴에 실패했습니다. 비밀번호를 확인해주세요.');
+      // 회원 탈퇴 API만 호출 (백엔드가 쿠키까지 처리)
+      await userService.deleteAccount({ password });
+
+      alert('회원 탈퇴가 완료되었습니다. 이용해주셔서 감사합니다.');
+
+      // 프론트엔드에서는 localStorage만 정리
+      localStorage.removeItem('user');
+
+      navigate('/login', { replace: true });
+    } catch (err) {
+      if (err instanceof AxiosError && err.response) {
+        setError(err.response.data || '비밀번호가 올바르지 않거나, 알 수 없는 오류가 발생했습니다.');
+      } else if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError('알 수 없는 오류가 발생했습니다.');
+      }
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="form-card">
-      <h1>계정 탈퇴</h1>
-      <p className="description">계정을 탈퇴하시려면, 보안을 위해 현재 비밀번호를 입력해주세요.</p>
-      {error && <p className="error-msg">{error}</p>}
-      <form onSubmit={handleDelete}>
-        <div className="form-group">
-          <label htmlFor="password">현재 비밀번호</label>
-          <input id="password" type="password" value={password} onChange={e => setPassword(e.target.value)} required />
+    <div className="auth-container">
+      <div className="card">
+        <h1>계정 탈퇴</h1>
+        <p>계정을 영구적으로 삭제하시려면, 본인 확인을 위해 비밀번호를 입력해주세요.</p>
+        <form onSubmit={handleSubmit}>
+          <div className="form-group">
+            <input
+              id="password"
+              type="password"
+              placeholder="비밀번호"
+              value={password}
+              onChange={e => setPassword(e.target.value)}
+              required
+            />
+          </div>
+          {error && <p className="error-msg">{error}</p>}
+          <button type="submit" className="btn btn-danger" disabled={loading}>
+            {loading ? '처리 중...' : '계정 영구 삭제'}
+          </button>
+        </form>
+        <div className="link-container">
+          <button onClick={() => navigate(-1)} className="btn btn-primary">
+            취소하고 돌아가기
+          </button>
         </div>
-        <button type="submit" className="btn-danger">
-          계정 탈퇴
-        </button>
-      </form>
-      <div className="link-group">
-        <Link to="/mypage">마이페이지로 돌아가기</Link>
       </div>
     </div>
   );
