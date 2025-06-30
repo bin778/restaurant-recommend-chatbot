@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import adminService from '../services/adminService';
+import authService from '../services/authService';
 import type { AdminUserInfo } from '../types';
-import '../styles/_admin.scss'; // 관리자 페이지 전용 SCSS
+import '../styles/_admin.scss';
+import { AxiosError } from 'axios'; // AxiosError 임포트
 
 const AdminPage: React.FC = () => {
   const [users, setUsers] = useState<AdminUserInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  const currentAdmin = authService.getCurrentUser();
 
   useEffect(() => {
     const fetchUsers = async () => {
@@ -25,10 +29,21 @@ const AdminPage: React.FC = () => {
     fetchUsers();
   }, []);
 
-  const handleDeleteUser = (userId: number) => {
+  const handleDeleteUser = async (userId: number) => {
     if (window.confirm(`사용자 ID: ${userId}를 정말 삭제하시겠습니까?`)) {
-      // 삭제 로직 구현 예정
-      alert('삭제 기능은 구현 예정입니다.');
+      try {
+        await adminService.deleteUser(userId);
+        setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
+        alert('사용자가 성공적으로 삭제되었습니다.');
+      } catch (err) {
+        // --- [수정] 백엔드에서 보낸 명확한 에러 메시지를 alert으로 표시 ---
+        if (err instanceof AxiosError && err.response) {
+          alert(`삭제 실패: ${err.response.data}`);
+        } else {
+          alert('사용자 삭제 중 알 수 없는 오류가 발생했습니다.');
+        }
+        console.error(err);
+      }
     }
   };
 
@@ -46,7 +61,6 @@ const AdminPage: React.FC = () => {
     );
 
   return (
-    // [수정] card와 admin-card 클래스를 함께 적용
     <div className="card admin-card">
       <h1>관리자 페이지</h1>
 
@@ -74,7 +88,11 @@ const AdminPage: React.FC = () => {
                 </td>
                 <td>{new Date(user.createdAt).toLocaleDateString()}</td>
                 <td>
-                  <button className="delete-btn" onClick={() => handleDeleteUser(user.id)}>
+                  <button
+                    className="delete-btn"
+                    onClick={() => handleDeleteUser(user.id)}
+                    disabled={user.id === currentAdmin?.id}
+                  >
                     삭제
                   </button>
                 </td>

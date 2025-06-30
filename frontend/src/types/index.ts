@@ -1,5 +1,6 @@
 // 로그인 성공 시 백엔드로부터 받는 사용자 정보 타입
 export interface User {
+  id: number;
   accessToken: string;
   grantType: string;
   nickname: string;

@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-@Transactional(readOnly = true) // CUD 작업이 아닌 경우 readOnly = true 설정
+@Transactional(readOnly = true)
 public class UserService implements UserDetailsService {
 
     private final UserRepository userRepository;
@@ -112,5 +112,20 @@ public class UserService implements UserDetailsService {
                         .createdAt(user.getCreatedAt())
                         .build())
                 .collect(Collectors.toList());
+    }
+
+    // 관리자에 의한 회원 삭제 서비스
+    @Transactional
+    public void deleteUserByAdmin(Long userIdToDelete, String adminEmail) {
+        // 관리자 자신의 정보 조회
+        User admin = userRepository.findByEmail(adminEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("관리자 정보를 찾을 수 없습니다."));
+
+        // 삭제 대상이 관리자 본인인지 확인
+        if (admin.getId().equals(userIdToDelete)) {
+            throw new IllegalArgumentException("관리자는 자신의 계정을 삭제할 수 없습니다.");
+        }
+
+        userRepository.deleteById(userIdToDelete);
     }
 }

@@ -78,6 +78,14 @@
     &:hover {
       background-color: variables.$secondary-hover;
     }
+
+    &:disabled {
+      background-color: #e9ecef;
+      cursor: not-allowed;
+      &:hover {
+        background-color: #e9ecef;
+      }
+    }
   }
 
   @include mixins.mobile {

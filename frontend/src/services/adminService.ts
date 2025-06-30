@@ -8,7 +8,7 @@ const getAllUsers = () => {
   return api.get<AdminUserInfo[]>(`${API_URL}/users`);
 };
 
-// TODO: 특정 사용자 삭제 (구현 예정)
+// 특정 사용자 삭제
 const deleteUser = (userId: number) => {
   return api.delete(`${API_URL}/users/${userId}`);
 };
