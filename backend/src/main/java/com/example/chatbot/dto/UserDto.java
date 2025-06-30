@@ -1,8 +1,8 @@
 package com.example.chatbot.dto;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import com.example.chatbot.domain.Role;
+import lombok.*;
+import java.time.LocalDateTime;
 
 public class UserDto {
     @Getter
@@ -39,5 +39,15 @@ public class UserDto {
     public static class InfoResponse {
         private String email;
         private String nickname;
+    }
+
+    @Getter
+    @Builder
+    public static class AdminUserInfo {
+        private Long id;
+        private String email;
+        private String nickname;
+        private Role role;
+        private LocalDateTime createdAt;
     }
 }

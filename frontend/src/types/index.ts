@@ -50,3 +50,12 @@ export interface ChatSessionInfo {
   title: string;
   createdAt: string;
 }
+
+// 관리자 페이지의 회원 목록에서 사용할 타입
+export interface AdminUserInfo {
+  id: number;
+  email: string;
+  nickname: string;
+  role: 'ROLE_USER' | 'ROLE_ADMIN';
+  createdAt: string;
+}
