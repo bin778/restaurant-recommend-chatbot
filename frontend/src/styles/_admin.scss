@@ -1,53 +1,55 @@
-.admin-container {
-  padding: 20px;
-  max-width: 1200px;
-  margin: 0 auto;
-}
+@use 'variables';
+@use 'mixins';
+@use 'base';
 
-.admin-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #eee;
+.admin-card {
+  @extend %card-base;
+  // 관리자 페이지는 더 넓은 가로폭을 사용하도록 재정의
+  width: 100% !important;
+  max-width: 1200px !important;
+  text-align: left;
 
   h1 {
-    margin: 0;
+    text-align: center;
+  }
+
+  h2 {
+    margin-top: 20px;
+    margin-bottom: 10px;
+    text-align: left;
+    font-size: 18px;
   }
 }
 
-.admin-content h2 {
-  margin-top: 0;
-  margin-bottom: 15px;
-}
-
 .user-table-container {
-  overflow-x: auto;
+  overflow-x: auto; // 테이블이 너무 길어지면 가로 스크롤 생성
 }
 
 .user-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
+  margin-top: 10px;
 
   th,
   td {
     padding: 12px 15px;
     border: 1px solid #ddd;
     text-align: left;
+    vertical-align: middle;
   }
 
   th {
     background-color: #f8f9fa;
+    font-weight: 700;
   }
 
   tbody tr:nth-of-type(even) {
-    background-color: #f2f2f2;
+    background-color: #f9f9f9;
   }
 
   tbody tr:hover {
-    background-color: #e9ecef;
+    background-color: #f1f1f1;
   }
 
   .role-badge {
@@ -56,26 +58,67 @@
     color: white;
     font-size: 12px;
     font-weight: 700;
+    text-transform: uppercase;
 
     &.ROLE_ADMIN {
-      background-color: #dc3545; // Red
+      background-color: variables.$danger-color;
     }
     &.ROLE_USER {
-      background-color: #007bff; // Blue
+      background-color: variables.$primary-color;
     }
   }
 
   .delete-btn {
-    padding: 5px 10px;
-    font-size: 12px;
-    color: white;
-    background-color: #6c757d;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+    @include mixins.button-base; // 공용 버튼 믹스인 사용
+    background-color: variables.$secondary-color;
+    padding: 6px 12px;
+    font-size: 13px;
+    margin-top: 0; // button-group 내부가 아니므로 margin-top 초기화
 
     &:hover {
-      background-color: #5a6268;
+      background-color: variables.$secondary-hover;
+    }
+  }
+
+  @include mixins.mobile {
+    width: none;
+    font-size: 12px;
+    margin-top: 6px;
+
+    th,
+    td {
+      padding: 8px 12px;
+    }
+
+    .role-badge {
+      padding: 3px 6px;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .delete-btn {
+      padding: 4px 8px;
+      font-size: 10px;
+    }
+  }
+}
+
+// 홈으로 가기 버튼 등을 위한 링크 그룹
+.link-group {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  .btn {
+    @include mixins.button-base;
+  }
+  .btn-secondary {
+    background-color: variables.$secondary-color;
+    &:hover {
+      background-color: variables.$secondary-hover;
     }
   }
 }
