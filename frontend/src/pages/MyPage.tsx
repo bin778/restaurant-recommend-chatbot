@@ -1,9 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import authService from '../services/authService';
 import userService from '../services/userService';
 import type { UserInfo } from '../types';
+import '../styles/_mypage.scss';
 
-const MyPage: React.FC = () => {
+interface MyPageProps {
+  onLogout: () => void;
+}
+
+const MyPage: React.FC<MyPageProps> = ({ onLogout }) => {
+  const currentUser = authService.getCurrentUser();
+
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -24,15 +32,15 @@ const MyPage: React.FC = () => {
 
   if (loading)
     return (
-      <div className="card">
+      <div className="card mypage-card">
         <h1>로딩 중...</h1>
       </div>
     );
   if (error)
     return (
-      <div className="card">
+      <div className="card mypage-card">
         <h1>오류</h1>
-        <p className="error-msg">{error}</p>
+        <p>{error}</p>
       </div>
     );
 
@@ -53,10 +61,21 @@ const MyPage: React.FC = () => {
       )}
 
       <div className="button-group">
-        {/* 각 기능 페이지로 이동하는 링크 버튼 */}
         <Link to="/update-profile" className="btn btn-primary">
           정보 수정
         </Link>
+
+        {/* 관리자일 경우에만 관리자 페이지 이동 버튼 표시 */}
+        {currentUser && currentUser.role === 'ROLE_ADMIN' && (
+          <Link to="/admin" className="btn btn-secondary">
+            관리자 페이지
+          </Link>
+        )}
+
+        {/* Link 대신 button과 onLogout 함수를 사용 */}
+        <button onClick={onLogout} className="btn btn-secondary">
+          로그아웃
+        </button>
         <Link to="/delete-account" className="btn btn-danger">
           계정 탈퇴
         </Link>

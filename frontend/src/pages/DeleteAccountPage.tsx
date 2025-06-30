@@ -16,6 +16,7 @@ const DeleteAccountPage: React.FC = () => {
       return;
     }
 
+    // TODO: 비밀번호가 틀릴 때 메시지 창이 안나오는 문제 해결
     try {
       await userService.deleteMyAccount({ password });
       authService.logout();

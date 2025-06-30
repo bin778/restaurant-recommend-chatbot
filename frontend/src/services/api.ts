@@ -1,7 +1,6 @@
 import axios from 'axios';
 import authService from './authService';
 
-// TODO: 타 기기에서 접속 안되는 문제 해결하기
 const api = axios.create({
   baseURL: 'https://192.168.0.104:8443', // 백엔드 HTTPS 주소
 });
