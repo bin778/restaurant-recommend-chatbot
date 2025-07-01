@@ -5,6 +5,7 @@ import chatService from '../services/chatService';
 import '../styles/_chat.scss';
 import type { Message } from '../types';
 import BackButton from '../components/BackButton';
+import { AxiosError } from 'axios';
 // TODO: Chrome이 아닌 환경에서도 음성 인식이 되도록 수정
 
 const ChatPage: React.FC = () => {
@@ -84,8 +85,11 @@ const ChatPage: React.FC = () => {
         const res = await chatService.getMessages(Number(sessionId));
         setMessages(res.data.map((msg, i) => ({ ...msg, id: msg.id || i })));
       } catch (error) {
-        console.error('대화 기록 로딩 실패:', error);
-        setMessages([{ ...welcomeMessage, text: '대화 기록을 불러오는 데 실패했습니다.' }]);
+        if (error instanceof AxiosError && (error.response?.status === 404 || error.response?.status === 400)) {
+          setMessages([{ id: Date.now(), sender: 'bot', text: '존재하지 않거나 접근 권한이 없는 대화방입니다.' }]);
+        } else {
+          setMessages([{ id: Date.now(), sender: 'bot', text: '대화 기록을 불러오는 데 실패했습니다.' }]);
+        }
       } finally {
         setIsLoading(false);
       }

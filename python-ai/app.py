@@ -1,5 +1,4 @@
-import os
-import json
+import os, json
 import urllib.request
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -8,6 +7,9 @@ from dotenv import load_dotenv
 import google.generativeai as genai
 import requests
 from contextlib import asynccontextmanager
+import urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # .env 로드 및 API 설정
 load_dotenv()

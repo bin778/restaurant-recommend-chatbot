@@ -3,10 +3,12 @@ package com.example.chatbot.controller;
 import com.example.chatbot.dto.ChatDto;
 import com.example.chatbot.service.ChatService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus; // HttpStatus 임포트
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 
 @RestController
@@ -34,11 +36,13 @@ public class ChatController {
     }
 
     @GetMapping("/{sessionId}/messages")
-    public ResponseEntity<List<ChatDto.MessageInfo>> getMessages(
-            @PathVariable Long sessionId,
-            @AuthenticationPrincipal UserDetails userDetails) {
-        List<ChatDto.MessageInfo> messages = chatService.getMessages(sessionId, userDetails.getUsername());
-        return ResponseEntity.ok(messages);
+    public ResponseEntity<?> getMessages(@PathVariable Long sessionId, @AuthenticationPrincipal UserDetails userDetails) {
+        try {
+            List<ChatDto.MessageInfo> messages = chatService.getMessages(sessionId, userDetails.getUsername());
+            return ResponseEntity.ok(messages);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
+        }
     }
 
     @DeleteMapping("/sessions/{sessionId}")
