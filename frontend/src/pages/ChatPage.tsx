@@ -5,8 +5,7 @@ import chatService from '../services/chatService';
 import '../styles/_chat.scss';
 import type { Message } from '../types';
 import BackButton from '../components/BackButton';
-// TODO: Chrome이 아닐 경우 Chrome만 가능하다는 메시지 alert 추가
-// TODO: 뒤로가기 할 때 바로 root(/)로 넘어오도록 수정
+// TODO: Chrome이 아닌 환경에서도 음성 인식이 되도록 수정
 
 const ChatPage: React.FC = () => {
   const { sessionId } = useParams<{ sessionId?: string }>();
@@ -17,7 +16,7 @@ const ChatPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const messageListRef = useRef<HTMLDivElement>(null);
 
-  // --- 음성 인식 자동 중지를 위한 타임아웃 Ref 추가 ---
+  // 음성 인식 자동 중지를 위한 타임아웃 Ref 추가
   const listeningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } = useSpeechRecognition();
@@ -27,7 +26,7 @@ const ChatPage: React.FC = () => {
     resetTranscript();
     SpeechRecognition.startListening({ continuous: false, language: 'ko-KR' });
 
-    // --- 1. 타이머 설정: 5초 후에 강제로 인식을 중지합니다. (모바일 환경의 무한 대기 방지) ---
+    // 타이머 설정: 5초 후에 강제로 인식을 중지합니다. (모바일 환경의 무한 대기 방지)
     if (listeningTimeoutRef.current) clearTimeout(listeningTimeoutRef.current);
     listeningTimeoutRef.current = setTimeout(() => {
       // 5초가 지나도 listening 상태가 true이면 강제 종료
@@ -39,17 +38,17 @@ const ChatPage: React.FC = () => {
 
   // 음성 인식을 중지하는 함수
   const stopListening = () => {
-    // --- 2. 타이머 정리: 수동으로 중지할 때도 설정된 타임아웃을 제거합니다. ---
+    // 타이머 정리: 수동으로 중지할 때도 설정된 타임아웃을 제거
     if (listeningTimeoutRef.current) {
       clearTimeout(listeningTimeoutRef.current);
     }
     SpeechRecognition.stopListening();
   };
 
-  // 음성 인식이 종료되면 인식된 텍스트를 입력창에 채워줍니다.
+  // 음성 인식이 종료되면 인식된 텍스트를 입력창에 채워줌
   useEffect(() => {
     if (!listening && transcript) {
-      // --- 2. 타이머 정리: 정상적으로 종료될 때도 타임아웃을 제거합니다. ---
+      // 타이머 정리: 정상적으로 종료될 때도 타임아웃을 제거
       if (listeningTimeoutRef.current) {
         clearTimeout(listeningTimeoutRef.current);
       }
@@ -73,7 +72,6 @@ const ChatPage: React.FC = () => {
     }
   }, [messages]);
 
-  // ... loadChat, handleSendMessage 로직은 기존과 동일합니다 ...
   const loadChat = useCallback(async () => {
     const welcomeMessage: Message = {
       id: Date.now(),
@@ -155,7 +153,7 @@ const ChatPage: React.FC = () => {
   return (
     <div className="chat-window">
       <header className="chat-header">
-        <BackButton />
+        <BackButton to="/" />
         <h1>맛집 추천 챗봇 🤖</h1>
       </header>
       <main className="message-list" ref={messageListRef}>

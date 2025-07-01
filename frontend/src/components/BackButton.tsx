@@ -2,11 +2,23 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import '../styles/_BackButton.scss';
 
-const BackButton: React.FC = () => {
+interface BackButtonProps {
+  to?: string;
+}
+
+const BackButton: React.FC<BackButtonProps> = ({ to }) => {
   const navigate = useNavigate();
 
+  const handleClick = () => {
+    if (to) {
+      navigate(to);
+    } else {
+      navigate(-1);
+    }
+  };
+
   return (
-    <button className="back-button" onClick={() => navigate(-1)} aria-label="Go back">
+    <button className="back-button" onClick={handleClick} aria-label="Go back">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="24"
