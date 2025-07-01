@@ -9,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.reactive.function.client.WebClient;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,12 +20,24 @@ import java.util.stream.Collectors;
 public class AdminService {
     private final BannedKeywordRepository keywordRepository;
     private final UserRepository userRepository;
+    private final WebClient webClient;
+
+    private void notifyPythonServerToRefresh() {
+        webClient.post()
+                .uri("/api/refresh-keywords")
+                .retrieve()
+                .bodyToMono(Void.class)
+                .doOnSuccess(aVoid -> System.out.println("✅ Python 서버에 키워드 목록 갱신 요청 성공"))
+                .doOnError(error -> System.err.println("❌ Python 서버 갱신 요청 실패: " + error.getMessage()))
+                .subscribe();
+    }
 
     @Transactional(readOnly = true)
     public List<UserDto.KeywordResponse> getKeywords() {
         return keywordRepository.findAll().stream()
                 .map(k -> UserDto.KeywordResponse.builder()
-                        .id(k.getId()).keyword(k.getKeyword())
+                        .id(k.getId())
+                        .keyword(k.getKeyword())
                         .adminNickname(k.getAdmin().getNickname())
                         .createdAt(k.getCreatedAt()).build())
                 .collect(Collectors.toList());
@@ -36,16 +50,24 @@ public class AdminService {
         User admin = userRepository.findByEmail(adminEmail)
                 .orElseThrow(() -> new UsernameNotFoundException("관리자 정보를 찾을 수 없습니다."));
 
-        BannedKeyword newKeyword = BannedKeyword.builder().keyword(keyword).admin(admin).build();
+        BannedKeyword newKeyword = BannedKeyword.builder()
+                .keyword(keyword)
+                .admin(admin)
+                .build();
+
         BannedKeyword savedKeyword = keywordRepository.save(newKeyword);
 
+        notifyPythonServerToRefresh();
+
         return UserDto.KeywordResponse.builder()
-                .id(savedKeyword.getId()).keyword(savedKeyword.getKeyword())
+                .id(savedKeyword.getId())
+                .keyword(savedKeyword.getKeyword())
                 .adminNickname(admin.getNickname())
                 .createdAt(savedKeyword.getCreatedAt()).build();
     }
 
     public void deleteKeyword(Long id) {
         keywordRepository.deleteById(id);
+        notifyPythonServerToRefresh();
     }
 }

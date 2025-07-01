@@ -72,6 +72,12 @@ def search_naver_local(query: str) -> dict:
     return None
 
 # API 엔드포인트
+@app.post("/api/refresh-keywords")
+async def refresh_keywords():
+    print("🔄 키워드 목록 새로고침 요청 수신. 갱신을 시작합니다.")
+    load_filtered_keywords()
+    return {"message": "Keywords refreshed successfully."}
+
 @app.post("/api/recommend", response_model=RecommendResponse)
 async def recommend_restaurant(request: RecommendRequest):
     conversation_history = request.messages
