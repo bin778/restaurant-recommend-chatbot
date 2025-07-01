@@ -9,7 +9,9 @@ import UpdateProfilePage from './pages/UpdateProfilePage';
 import DeleteAccountPage from './pages/DeleteAccountPage';
 import ChatPage from './pages/ChatPage';
 import ChatLayoutPage from './pages/ChatLayoutPage';
-import AdminPage from './pages/AdminPage';
+import AdminIndexPage from './pages/admin/AdminIndexPage';
+import UserManagementPage from './pages/admin/UserManagementPage';
+import KeywordManagementPage from './pages/admin/KeywordManagementPage';
 
 import authService from './services/authService';
 import type { User } from './types';
@@ -48,7 +50,7 @@ const App: React.FC = () => {
       <Route path="/login" element={<LoginPage setCurrentUser={setCurrentUser} />} />
       <Route path="/signup" element={<SignupPage />} />
 
-      {/* 보호된 라우트들 */}
+      {/* 일반 회원 라우트 */}
       <Route
         path="/mypage"
         element={
@@ -86,12 +88,28 @@ const App: React.FC = () => {
         <Route path=":sessionId" element={<ChatPage />} />
       </Route>
 
-      {/* 관리자 전용 라우트 */}
+      {/* 관리자 회원 라우트 */}
       <Route
         path="/admin"
         element={
           <AdminRoute>
-            <AdminPage />
+            <AdminIndexPage />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/users"
+        element={
+          <AdminRoute>
+            <UserManagementPage />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/admin/keywords"
+        element={
+          <AdminRoute>
+            <KeywordManagementPage />
           </AdminRoute>
         }
       />

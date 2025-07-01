@@ -2,9 +2,18 @@
 @use 'mixins';
 @use 'base';
 
+.admin-page-background {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+  background-color: #f0f2f5;
+  box-sizing: border-box;
+}
+
 .admin-card {
   @extend %card-base;
-  // 관리자 페이지는 더 넓은 가로폭을 사용하도록 재정의
   width: 100% !important;
   max-width: 1200px !important;
   text-align: left;
@@ -12,12 +21,29 @@
   h1 {
     text-align: center;
   }
+}
 
-  h2 {
-    margin-top: 20px;
-    margin-bottom: 10px;
+.admin-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eee;
+
+  h1 {
+    margin: 0;
     text-align: left;
-    font-size: 18px;
+    font-size: 24px;
+  }
+
+  a {
+    text-decoration: none;
+    color: variables.$primary-color;
+    font-weight: 500;
+    &:hover {
+      text-decoration: underline;
+    }
   }
 }
 
@@ -90,8 +116,8 @@
 
   @include mixins.mobile {
     width: none;
-    font-size: 12px;
-    margin-top: 6px;
+    font-size: 10px;
+    margin-top: 5px;
 
     th,
     td {
@@ -117,7 +143,7 @@
 .keyword-form {
   display: flex;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
 
   input {
     flex-grow: 1;
