@@ -50,4 +50,17 @@ public class UserDto {
         private Role role;
         private LocalDateTime createdAt;
     }
+
+    @Getter @Setter
+    public static class KeywordRequest {
+        private String keyword;
+    }
+
+    @Getter @Builder
+    public static class KeywordResponse {
+        private Long id;
+        private String keyword;
+        private String adminNickname; // 등록한 관리자의 닉네임
+        private LocalDateTime createdAt;
+    }
 }

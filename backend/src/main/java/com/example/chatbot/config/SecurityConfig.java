@@ -83,7 +83,8 @@ public class SecurityConfig {
                                         "/",
                                         "/error",
                                         "/api/auth/**", // /signup, /login, /logout, /refresh 모두 포함
-                                        "/api/recommend" // 챗봇 추천 API 허용 (선택 사항)
+                                        "/api/recommend", // 챗봇 추천 API 허용 (선택 사항)
+                                        "/api/public/**"
                                 ).permitAll()
                                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                                 .anyRequest().authenticated()

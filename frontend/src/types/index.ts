@@ -60,3 +60,11 @@ export interface AdminUserInfo {
   role: 'ROLE_USER' | 'ROLE_ADMIN';
   createdAt: string;
 }
+
+// 부적절한 필터링을 설정할 타입
+export interface BannedKeyword {
+  id: number;
+  keyword: string;
+  adminNickname: string;
+  createdAt: string;
+}

@@ -113,6 +113,37 @@
   }
 }
 
+// 키워드 추가 폼 스타일 ---
+.keyword-form {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+
+  input {
+    flex-grow: 1;
+    padding: 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    &:focus {
+      outline: none;
+      border-color: variables.$primary-color;
+      box-shadow: 0 0 0 2px rgba(variables.$primary-color, 0.2);
+    }
+  }
+
+  .btn-primary {
+    @include mixins.button-base;
+    width: auto; // 자동 너비
+    padding: 10px 20px;
+    margin-top: 0;
+    background-color: variables.$primary-color;
+    &:hover {
+      background-color: variables.$primary-hover;
+    }
+  }
+}
+
 // 홈으로 가기 버튼 등을 위한 링크 그룹
 .link-group {
   margin-top: 20px;

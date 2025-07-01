@@ -3,9 +3,11 @@ import json
 import urllib.request
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import List, Dict, Any
+from typing import List
 from dotenv import load_dotenv
 import google.generativeai as genai
+import requests
+from contextlib import asynccontextmanager
 
 # .env 로드 및 API 설정
 load_dotenv()
@@ -14,8 +16,10 @@ genai.configure(api_key=os.environ.get("GOOGLE_API_KEY"))
 model = genai.GenerativeModel('gemini-2.5-flash')
 NAVER_CLIENT_ID = os.environ.get("NAVER_CLIENT_ID")
 NAVER_CLIENT_SECRET = os.environ.get("NAVER_CLIENT_SECRET")
+SPRING_BOOT_API_URL = "https://localhost:8443"
+filtered_keywords = set()
 
-# --- Pydantic 모델 정의 ---
+# Pydantic 모델 정의
 class Message(BaseModel):
     sender: str
     text: str
@@ -26,7 +30,32 @@ class RecommendRequest(BaseModel):
 class RecommendResponse(BaseModel):
     reply: str
 
-# --- 네이버 검색 함수 (변경 없음) ---
+# 서버 시작 시 필터링 키워드 로드
+def load_filtered_keywords():
+    global filtered_keywords
+    try:
+        # Spring Boot의 공개 API 엔드포인트에서 키워드 목록을 가져옴
+        response = requests.get(f"{SPRING_BOOT_API_URL}/api/public/filtered-keywords", verify=False)
+        if response.status_code == 200:
+            keywords_list = response.json()
+            filtered_keywords = set(keywords_list)
+            print(f"✅ 필터링 키워드 로드 완료: {len(filtered_keywords)}개")
+    except Exception as e:
+        print(f"❌ 필터링 키워드 로드 실패: {e}")
+
+# FastAPI Lifespan 이벤트 핸들러
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # 서버 시작 시 실행될 로직
+    load_filtered_keywords()
+    yield
+    # 서버 종료 시 실행될 로직 (필요 시 추가)
+    print("서버가 종료됩니다.")
+
+# FastAPI 앱 인스턴스 생성 시 lifespan 적용
+app = FastAPI(lifespan=lifespan)
+
+# 네이버 검색 함수
 def search_naver_local(query: str) -> dict:
     print(f"네이버 검색 쿼리: '{query}'")
     encText = urllib.parse.quote(query)
@@ -42,15 +71,21 @@ def search_naver_local(query: str) -> dict:
         print(f"네이버 API 호출 중 오류 발생: {e}")
     return None
 
-# --- API 엔드포인트 ---
+# API 엔드포인트
 @app.post("/api/recommend", response_model=RecommendResponse)
 async def recommend_restaurant(request: RecommendRequest):
     conversation_history = request.messages
     latest_user_message = conversation_history[-1].text if conversation_history else ""
     print(f"전달받은 대화기록: {conversation_history}")
 
+    # 사용자 메시지 필터링
+    for keyword in filtered_keywords:
+        if keyword.lower() in latest_user_message.lower():
+            print(f"🚫 부적절 키워드 '{keyword}' 감지. 추천 프로세스를 중단합니다.")
+            return RecommendResponse(reply="죄송합니다. 해당 주제에 대해서는 답변해 드릴 수 없습니다. 다른 질문이 있으신가요?")
+
     try:
-        # --- 1단계 (신규): 의도 및 감정 분석 ---
+        # 1단계 (신규): 의도 및 감정 분석
         intent_analysis_prompt = f"""
         당신은 사용자의 대화 의도를 분석하는 AI입니다.
         아래 [대화 기록]의 마지막 메시지를 보고, 의도를 '맛집 추천' 또는 '일반 대화'로 분류해주세요.
@@ -69,7 +104,7 @@ async def recommend_restaurant(request: RecommendRequest):
         intent = intent_data.get("intent")
         sentiment = intent_data.get("sentiment_keywords", "")
 
-        # --- 분기 처리: 일반 대화 vs 맛집 추천 ---
+        # 분기 처리: 일반 대화 vs 맛집 추천
         if intent == "일반 대화":
             general_response_prompt = f"""
             당신은 사용자의 말에 친절하게 공감하며 응답하는 챗봇입니다.
@@ -80,7 +115,7 @@ async def recommend_restaurant(request: RecommendRequest):
             bot_reply = model.generate_content(general_response_prompt).text
             return RecommendResponse(reply=bot_reply)
 
-        # --- 2단계: 맛집 추천을 위한 키워드 추출 ---
+        # 2단계: 맛집 추천을 위한 키워드 추출
         keyword_extraction_prompt = f"""
         [대화 기록]과 [감성/상황 키워드]를 바탕으로, 네이버 지도 검색에 사용할 검색어와 관련 정보를 JSON으로 추출해줘.
 
@@ -101,7 +136,7 @@ async def recommend_restaurant(request: RecommendRequest):
         keywords = json.loads(keyword_response.text.strip().lstrip("```json").rstrip("```"))
         print(f"검색 키워드: {keywords}")
 
-        # --- 3단계: 외부 데이터 검색 ---
+        # 3단계: 외부 데이터 검색
         all_search_items = []
         if keywords.get("locations"):
             for location in keywords["locations"]:
@@ -112,7 +147,7 @@ async def recommend_restaurant(request: RecommendRequest):
                     if search_results and search_results.get("items"):
                         all_search_items.extend(search_results["items"])
         
-        # --- 4단계: 최종 답변 생성 ---
+        # 4단계: 최종 답변 생성
         exclude_list = keywords.get("exclude_list", [])
         filtered_items = [item for item in all_search_items if item.get('title', '').replace('<b>', '').replace('</b>', '') not in exclude_list]
         unique_items = list({item['link']: item for item in filtered_items}.values())

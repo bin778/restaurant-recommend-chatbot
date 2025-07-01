@@ -2,47 +2,78 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import adminService from '../services/adminService';
 import authService from '../services/authService';
-import type { AdminUserInfo } from '../types';
+import type { AdminUserInfo, BannedKeyword } from '../types';
 import '../styles/_admin.scss';
 import { AxiosError } from 'axios';
 
 const AdminPage: React.FC = () => {
   const [users, setUsers] = useState<AdminUserInfo[]>([]);
+  const [keywords, setKeywords] = useState<BannedKeyword[]>([]);
+  const [newKeyword, setNewKeyword] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const currentAdmin = authService.getCurrentUser();
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchData = async () => {
       try {
-        const response = await adminService.getAllUsers();
-        setUsers(response.data);
+        const [usersResponse, keywordsResponse] = await Promise.all([
+          adminService.getAllUsers(),
+          adminService.getKeywords(),
+        ]);
+        setUsers(usersResponse.data);
+        setKeywords(keywordsResponse.data);
       } catch (err) {
-        setError('회원 목록을 불러오는 데 실패했습니다.');
+        setError('데이터를 불러오는 데 실패했습니다.');
         console.error(err);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchUsers();
+    fetchData();
   }, []);
 
   const handleDeleteUser = async (userId: number) => {
     if (window.confirm(`사용자 ID: ${userId}를 정말 삭제하시겠습니까?`)) {
       try {
         await adminService.deleteUser(userId);
-        setUsers(prevUsers => prevUsers.filter(user => user.id !== userId));
+        setUsers(prev => prev.filter(user => user.id !== userId));
         alert('사용자가 성공적으로 삭제되었습니다.');
       } catch (err) {
-        // --- [수정] 백엔드에서 보낸 명확한 에러 메시지를 alert으로 표시 ---
         if (err instanceof AxiosError && err.response) {
           alert(`삭제 실패: ${err.response.data}`);
         } else {
           alert('사용자 삭제 중 알 수 없는 오류가 발생했습니다.');
         }
-        console.error(err);
+      }
+    }
+  };
+
+  const handleAddKeyword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmedKeyword = newKeyword.trim();
+    if (!trimmedKeyword) return;
+    try {
+      const response = await adminService.addKeyword(trimmedKeyword);
+      setKeywords(prev => [...prev, response.data]);
+      setNewKeyword('');
+    } catch (err) {
+      if (err instanceof AxiosError && err.response) {
+        alert(`키워드 추가 실패: ${err.response.data}`);
+      } else {
+        alert('키워드 추가에 실패했습니다.');
+      }
+    }
+  };
+
+  const handleDeleteKeyword = async (id: number) => {
+    if (window.confirm(`키워드 ID: ${id}를 정말 삭제하시겠습니까?`)) {
+      try {
+        await adminService.deleteKeyword(id);
+        setKeywords(prev => prev.filter(k => k.id !== id));
+      } catch (err) {
+        alert('키워드 삭제에 실패했습니다.');
       }
     }
   };
@@ -50,12 +81,13 @@ const AdminPage: React.FC = () => {
   if (loading)
     return (
       <div className="card admin-card">
-        <h2>로딩 중...</h2>
+        <h1>로딩 중...</h1>
       </div>
     );
   if (error)
     return (
       <div className="card admin-card">
+        <h1>오류</h1>
         <p className="error-msg">{error}</p>
       </div>
     );
@@ -64,6 +96,7 @@ const AdminPage: React.FC = () => {
     <div className="card admin-card">
       <h1>관리자 페이지</h1>
 
+      {/* 회원 목록 관리 섹션 */}
       <h2>회원 목록 관리</h2>
       <div className="user-table-container">
         <table className="user-table">
@@ -101,7 +134,50 @@ const AdminPage: React.FC = () => {
           </tbody>
         </table>
       </div>
-      <div className="link-group" style={{ marginTop: '20px' }}>
+
+      {/* 부적절 키워드 관리 섹션 */}
+      <h2>부적절 키워드 관리</h2>
+      <form onSubmit={handleAddKeyword} className="keyword-form">
+        <input
+          type="text"
+          value={newKeyword}
+          onChange={e => setNewKeyword(e.target.value)}
+          placeholder="필터링할 키워드 입력..."
+        />
+        <button type="submit" className="btn btn-primary">
+          추가
+        </button>
+      </form>
+      <div className="user-table-container">
+        <table className="user-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>키워드</th>
+              <th>등록한 관리자</th>
+              <th>등록일</th>
+              <th>관리</th>
+            </tr>
+          </thead>
+          <tbody>
+            {keywords.map(kw => (
+              <tr key={kw.id}>
+                <td>{kw.id}</td>
+                <td>{kw.keyword}</td>
+                <td>{kw.adminNickname}</td>
+                <td>{new Date(kw.createdAt).toLocaleDateString()}</td>
+                <td>
+                  <button className="delete-btn" onClick={() => handleDeleteKeyword(kw.id)}>
+                    삭제
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="button-group">
         <Link to="/" className="btn btn-secondary">
           홈으로 돌아가기
         </Link>
