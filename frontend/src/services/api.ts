@@ -1,8 +1,10 @@
 import axios from 'axios';
 import authService from './authService';
 
+const baseURL = import.meta.env.VITE_API_BASE_URL;
+
 const api = axios.create({
-  baseURL: 'https://192.168.0.103:8443', // 백엔드 HTTPS 주소
+  baseURL: baseURL,
 });
 
 // 요청 인터셉터: 모든 요청 헤더에 액세스 토큰을 추가
