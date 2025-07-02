@@ -6,7 +6,6 @@ import '../styles/_chat.scss';
 import type { Message } from '../types';
 import BackButton from '../components/BackButton';
 import { AxiosError } from 'axios';
-// TODO: Chrome이 아닌 환경에서도 음성 인식이 되도록 수정
 
 const ChatPage: React.FC = () => {
   const { sessionId } = useParams<{ sessionId?: string }>();
@@ -16,49 +15,34 @@ const ChatPage: React.FC = () => {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messageListRef = useRef<HTMLDivElement>(null);
+  const [showCompatibilityInfo, setShowCompatibilityInfo] = useState(false);
 
-  // 음성 인식 자동 중지를 위한 타임아웃 Ref 추가
   const listeningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } = useSpeechRecognition();
 
-  // 음성 인식을 시작하는 함수
   const startListening = () => {
     resetTranscript();
     SpeechRecognition.startListening({ continuous: false, language: 'ko-KR' });
-
-    // 타이머 설정: 5초 후에 강제로 인식을 중지합니다. (모바일 환경의 무한 대기 방지)
     if (listeningTimeoutRef.current) clearTimeout(listeningTimeoutRef.current);
     listeningTimeoutRef.current = setTimeout(() => {
-      // 5초가 지나도 listening 상태가 true이면 강제 종료
-      if (SpeechRecognition.browserSupportsSpeechRecognition() && listening) {
-        SpeechRecognition.stopListening();
-      }
-    }, 5000); // 5초 (시간은 조절 가능)
+      if (listening) SpeechRecognition.stopListening();
+    }, 5000);
   };
 
-  // 음성 인식을 중지하는 함수
   const stopListening = () => {
-    // 타이머 정리: 수동으로 중지할 때도 설정된 타임아웃을 제거
-    if (listeningTimeoutRef.current) {
-      clearTimeout(listeningTimeoutRef.current);
-    }
+    if (listeningTimeoutRef.current) clearTimeout(listeningTimeoutRef.current);
     SpeechRecognition.stopListening();
   };
 
-  // 음성 인식이 종료되면 인식된 텍스트를 입력창에 채워줌
   useEffect(() => {
     if (!listening && transcript) {
-      // 타이머 정리: 정상적으로 종료될 때도 타임아웃을 제거
-      if (listeningTimeoutRef.current) {
-        clearTimeout(listeningTimeoutRef.current);
-      }
+      if (listeningTimeoutRef.current) clearTimeout(listeningTimeoutRef.current);
       setInputValue(prev => (prev ? prev + ' ' + transcript : transcript));
       resetTranscript();
     }
   }, [listening, transcript, resetTranscript]);
 
-  // 컴포넌트가 언마운트될 때 실행중인 타이머 정리
   useEffect(() => {
     return () => {
       if (listeningTimeoutRef.current) {
@@ -96,7 +80,7 @@ const ChatPage: React.FC = () => {
     } else {
       setMessages([welcomeMessage]);
     }
-  }, [sessionId]);
+  }, [sessionId, navigate]);
 
   useEffect(() => {
     loadChat();
@@ -150,10 +134,6 @@ const ChatPage: React.FC = () => {
     }
   };
 
-  if (!browserSupportsSpeechRecognition) {
-    return <span>이 브라우저는 음성 인식을 지원하지 않습니다. Chrome 브라우저를 권장합니다.</span>;
-  }
-
   return (
     <div className="chat-window">
       <header className="chat-header">
@@ -180,11 +160,34 @@ const ChatPage: React.FC = () => {
       </main>
       <footer className="chat-input-form">
         <form onSubmit={handleSendMessage}>
-          <button type="button" onClick={handleMicClick} className={`mic-btn ${listening ? 'listening' : ''}`}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-              <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z" />
-            </svg>
-          </button>
+          {browserSupportsSpeechRecognition ? (
+            <button type="button" onClick={handleMicClick} className={`mic-btn ${listening ? 'listening' : ''}`}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z" />
+              </svg>
+            </button>
+          ) : (
+            <div className="mic-info-wrapper">
+              <button type="button" className="mic-btn disabled" onClick={() => setShowCompatibilityInfo(true)}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z" />
+                </svg>
+              </button>
+              {showCompatibilityInfo && (
+                <div className="compatibility-tooltip">
+                  <p>음성 인식 기능은 Chrome 브라우저에서 사용을 권장합니다.</p>
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      setShowCompatibilityInfo(false);
+                    }}
+                  >
+                    닫기
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
           <div className="input-wrapper">
             <input
               type="text"

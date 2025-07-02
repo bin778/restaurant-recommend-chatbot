@@ -170,6 +170,68 @@
   }
 }
 
+// 호환성 안내 UI 스타일
+.mic-info-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.mic-btn.disabled {
+  color: #ccc;
+  cursor: help;
+  &:hover {
+    background-color: transparent;
+  }
+}
+
+.compatibility-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%) translateY(-12px);
+  background-color: #323232;
+  color: white;
+  padding: 12px 18px;
+  border-radius: 8px;
+  font-size: 14px;
+  width: 240px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+  animation: fadeIn 0.2s ease-out;
+
+  p {
+    margin: 0 0 10px 0;
+    line-height: 1.5;
+  }
+
+  button {
+    background: #555;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    font-size: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    &:hover {
+      background: #666;
+    }
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -6px;
+    border-width: 6px;
+    border-style: solid;
+    border-color: #323232 transparent transparent transparent;
+  }
+}
+
 @keyframes bounce {
   0%,
   80%,
