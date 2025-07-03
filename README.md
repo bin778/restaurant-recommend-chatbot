@@ -188,7 +188,7 @@
 
 - **문제 현상**: 로컬 서버 접속 시 SSL 인증서 기관이 유효하지 않다는 에러와 함께 API 통신이 차단됨.
 - **원인 분석**: `mkcert`로 생성된 루트 인증 기관(CA)은 명령어를 실행한 로컬 머신에만 자동으로 신뢰하도록 등록됨.
-- **해결 과정**: `rootCA.pem` 파일을 각 클라이언트 기기(아이폰, 윈도우)로 전송 후, OS 설정에 따라 **"신뢰할 수 있는 루트 인증 기관"**으로 직접 설치 및 등록하여 해결.
+- **해결 과정**: `rootCA.pem` 파일을 각 클라이언트 기기(아이폰, 윈도우)로 전송 후, OS 설정에 따라 "신뢰할 수 있는 루트 인증 기관"으로 직접 설치 및 등록하여 해결.
 
 <br/>
 
@@ -302,7 +302,8 @@
 3.  **(터미널 3) Python AI 서버 실행**
     ```bash
     cd python-ai
-    source venv/bin/activate
+    python -m venv 가상환경이름
+    source 가상환경이름/bin/activate
     pip install -r requirements.txt
     uvicorn app:app --host 0.0.0.0 --port 8000 --reload
     ```
