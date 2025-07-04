@@ -84,26 +84,28 @@ public class AuthController {
     }
 
     @PostMapping("/refresh")
-    public ResponseEntity<?> refreshToken(@CookieValue(name = "refreshToken", required = false) String refreshToken) {
+    public ResponseEntity<?> refreshToken(@CookieValue(name = "refreshToken") String refreshToken) {
         if (refreshToken == null || !jwtTokenProvider.validateToken(refreshToken)) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Refresh Token");
         }
 
-        String email = jwtTokenProvider.getUserPk(refreshToken);
-        User user = userService.findByEmail(email);
+        try {
+            String email = jwtTokenProvider.getUserPk(refreshToken);
+            User user = userService.findByEmail(email);
 
-        // 토큰 재발급 시에도 역할(Role) 정보 포함
-        String newAccessToken = jwtTokenProvider.createAccessToken(email, user.getNickname(), user.getRole().name());
+            String newAccessToken = jwtTokenProvider.createAccessToken(email, user.getNickname(), user.getRole().name());
 
-        // [수정] 응답에 역할(Role) 정보 포함
-        AuthDto.LoginResponse responseDto = AuthDto.LoginResponse.builder()
-                .grantType("Bearer")
-                .accessToken(newAccessToken)
-                .nickname(user.getNickname())
-                .role(user.getRole().name())
-                .build();
+            AuthDto.LoginResponse responseDto = AuthDto.LoginResponse.builder()
+                    .grantType("Bearer")
+                    .accessToken(newAccessToken)
+                    .nickname(user.getNickname())
+                    .role(user.getRole().name())
+                    .build();
 
-        return ResponseEntity.ok(responseDto);
+            return ResponseEntity.ok(responseDto);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid Refresh Token");
+        }
     }
 
     @PostMapping("/logout")
