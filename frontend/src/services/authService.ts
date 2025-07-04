@@ -12,7 +12,6 @@ const signup = (data: SignupData): Promise<void> => {
 const login = async (data: LoginData): Promise<User> => {
   const response = await api.post<User>(API_URL + '/login', data);
   if (response.data.accessToken) {
-    // 1. 사용자 정보를 localStorage에 저장합니다.
     localStorage.setItem('user', JSON.stringify(response.data));
   }
   return response.data;
@@ -22,7 +21,10 @@ const login = async (data: LoginData): Promise<User> => {
 const refresh = async (): Promise<User> => {
   const response = await api.post<User>(API_URL + '/refresh');
   if (response.data.accessToken) {
-    localStorage.setItem('user', JSON.stringify(response.data));
+    // [수정] 재발급 시에도 기존 사용자 정보와 합쳐서 완전한 User 객체를 저장
+    const user = getCurrentUser();
+    const refreshedUser = { ...user, ...response.data };
+    localStorage.setItem('user', JSON.stringify(refreshedUser));
   }
   return response.data;
 };
@@ -30,7 +32,6 @@ const refresh = async (): Promise<User> => {
 // 로그아웃
 const logout = async (): Promise<void> => {
   try {
-    // 백엔드의 /logout 엔드포인트를 호출하여 서버 측 쿠키를 만료시킴
     await api.post(API_URL + '/logout');
   } catch (error) {
     console.error('서버 로그아웃 중 오류 발생:', error);
@@ -43,7 +44,7 @@ const logout = async (): Promise<void> => {
 const getCurrentUser = (): User | null => {
   const userStr = localStorage.getItem('user');
   if (userStr) {
-    return JSON.parse(userStr);
+    return JSON.parse(userStr) as User; // User 타입으로 명시적 캐스팅
   }
   return null;
 };
