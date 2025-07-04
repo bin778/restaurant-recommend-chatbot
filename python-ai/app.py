@@ -90,68 +90,41 @@ async def recommend_restaurant(request: RecommendRequest):
             return RecommendResponse(reply="죄송합니다. 해당 주제에 대해서는 답변해 드릴 수 없습니다.")
 
     try:
-        # --- [핵심 수정] 1단계: Few-shot 예시를 포함하여 지능을 고도화한 통합 프롬프트 ---
+        # --- [핵심 수정] 1단계: '상세 정보 질문' 의도를 추가하여 지능을 고도화한 통합 프롬프트 ---
         combined_analysis_prompt = f"""
-        당신은 사용자의 메시지를 분석하여, 그 의도에 따라 다음 세 가지 작업 중 하나를 수행하는 멀티태스킹 AI입니다.
+        당신은 사용자의 메시지를 분석하여, 그 의도에 따라 다음 네 가지 작업 중 하나를 수행하는 멀티태스킹 AI입니다.
 
         [작업 흐름]
-        1. 마지막 사용자 메시지의 의도를 '맛집 추천' 또는 '일반 대화'로 분류합니다.
+        1. 마지막 사용자 메시지의 의도를 '맛집 추천', '상세 정보 질문', '일반 대화' 중 하나로 분류합니다.
         2. 의도가 '일반 대화'이면, 'reply' 필드에 직접 답변을 생성하고 나머지 필드는 null로 설정합니다.
-        3. 의도가 '맛집 추천'이면, 'reply' 필드는 null로 두고, 네이버 지역 검색에 필요한 'search_keywords'와 사용자의 'sentiment_keywords'를 추출합니다.
+        3. 의도가 '맛집 추천'이면, 네이버 지역 검색에 필요한 'search_keywords'와 사용자의 'sentiment_keywords'를 추출합니다.
+        4. 의도가 '상세 정보 질문'이면, 대화의 맥락에서 사용자가 궁금해하는 'target_restaurant'와 'requested_details'(예: 메뉴, 영업시간)를 추출합니다.
 
         [추출 지시사항]
-        - sentiment_keywords: 사용자의 기분(예: 우울함), 날씨(예: 비 오는 날), 맛 취향(예: 매콤한) 등 감성/상황 키워드를 추출합니다.
-        - topics: 사용자가 언급한 음식, 브랜드, 맛을 모두 리스트 형태로 추출합니다. '비 오는 날' -> '파전, 칼국수' 처럼 상황을 검색 가능한 음식 키워드로 변환하여 topics에 추가합니다.
-        - locations: 사용자가 마지막에 언급한 지역명 리스트를 추출합니다.
-        - exclude_list: 이전 챗봇 답변에서 이미 추천했던 가게 이름들의 리스트입니다.
+        - sentiment_keywords: 사용자의 기분, 날씨, 맛 취향 등 감성/상황 키워드.
+        - topics: 사용자가 언급한 음식, 브랜드, 맛 리스트. 상황을 검색 가능한 음식 키워드로 변환하여 추가.
+        - locations: 사용자가 마지막에 언급한 지역명 리스트.
+        - exclude_list: 이전 챗봇 답변에서 이미 추천했던 가게 이름들의 리스트.
+        - target_restaurant: 사용자가 상세 정보를 물어보는 특정 가게 이름.
+        - requested_details: 사용자가 요청한 구체적인 정보 (예: "대표 메뉴", "영업시간", "주차 정보").
 
         ---
         [Few-shot 예시]
-
-        # 예시 1: 간단한 맛집 질문
+        # 예시 1: 일반적인 맛집 추천
         - 대화 기록: [{{"sender": "user", "text": "우장산역 근처에 먹을 만한 맛집 있어?"}}]
-        - 출력:
-        {{
-            "intent": "맛집 추천",
-            "reply": null,
-            "sentiment_keywords": null,
-            "search_keywords": {{
-                "topics": ["맛집"],
-                "locations": ["우장산역"],
-                "exclude_list": []
-            }}
-        }}
+        - 출력: {{"intent": "맛집 추천", "reply": null, "sentiment_keywords": null, "search_keywords": {{"topics": ["맛집"], "locations": ["우장산역"], "exclude_list": []}}, "detail_query": null}}
 
-        # 예시 2: 감성 키워드가 포함된 질문
-        - 대화 기록: [{{"sender": "user", "text": "오늘 너무 우울해서 그런데, 강남에서 달달한 디저트 맛있는 곳 좀 알려줘"}}]
-        - 출력:
-        {{
-            "intent": "맛집 추천",
-            "reply": null,
-            "sentiment_keywords": "우울한, 달달한",
-            "search_keywords": {{
-                "topics": ["달달한 디저트", "케이크", "카페"],
-                "locations": ["강남"],
-                "exclude_list": []
-            }}
-        }}
-
+        # 예시 2: 상세 정보 질문 (후속 질문)
+        - 대화 기록: [{{"sender": "bot", "text": "1. 유라멘\n이곳은..."}}, {{"sender": "user", "text": "여기 대표 메뉴랑 영업시간은 어떻게 돼?"}}]
+        - 출력: {{"intent": "상세 정보 질문", "reply": null, "sentiment_keywords": null, "search_keywords": null, "detail_query": {{"target_restaurant": "유라멘", "requested_details": ["대표 메뉴", "영업시간"]}}}}
+        
         # 예시 3: 일반 대화
         - 대화 기록: [{{"sender": "user", "text": "고마워!"}}]
-        - 출력:
-        {{
-            "intent": "일반 대화",
-            "reply": "천만에요! 또 궁금한 점이 있으시면 언제든지 물어보세요.",
-            "sentiment_keywords": null,
-            "search_keywords": null
-        }}
+        - 출력: {{"intent": "일반 대화", "reply": "천만에요! 또 궁금한 점이 있으시면 언제든지 물어보세요.", "sentiment_keywords": null, "search_keywords": null, "detail_query": null}}
         ---
 
         [실제 분석 대상]
-
-        [대화 기록]
-        {json.dumps([msg.dict() for msg in conversation_history], ensure_ascii=False)}
-
+        [대화 기록]: {json.dumps([msg.dict() for msg in conversation_history], ensure_ascii=False)}
         [JSON 출력 형식]
         """
         
@@ -166,50 +139,65 @@ async def recommend_restaurant(request: RecommendRequest):
         if intent == "일반 대화":
             return RecommendResponse(reply=analysis_data.get("reply", "네, 말씀하세요."))
 
-        # --- 맛집 추천 로직 시작 ---
-        sentiment = analysis_data.get("sentiment_keywords")
-        keywords = analysis_data.get("search_keywords")
-
-        if not keywords or not keywords.get("locations"):
-            # [수정] 위치 정보가 없을 때, 현재 위치를 사용하도록 유도하거나 다시 질문
-            if request.current_location:
-                print(f"사용자가 위치를 언급하지 않았습니다. 전달받은 현재 위치 '{request.current_location}'를 사용합니다.")
-                keywords = keywords or {}
-                keywords["locations"] = [request.current_location]
-            else:
-                return RecommendResponse(reply="어디 근처의 맛집을 찾아드릴까요? 지역을 말씀해주시면 더 정확하게 추천해 드릴 수 있어요.")
-
-        # --- 외부 데이터 검색 ---
         all_search_items = []
-        for location in keywords.get("locations", []):
-            for topic in keywords.get("topics", ["맛집"]):
-                search_query = f"{location} {topic}"
-                search_results = search_naver_local(search_query.strip())
+        sentiment = analysis_data.get("sentiment_keywords")
+        target_restaurant_name = None
+
+        # --- [신규] 상세 정보 질문 처리 로직 ---
+        if intent == "상세 정보 질문":
+            detail_query = analysis_data.get("detail_query")
+            if detail_query and detail_query.get("target_restaurant"):
+                target_restaurant_name = detail_query["target_restaurant"]
+                # 상세 정보 검색 시, 가게 이름으로만 검색하여 가장 정확한 장소 정보를 찾습니다.
+                search_results = search_naver_local(target_restaurant_name)
                 if search_results and search_results.get("items"):
                     all_search_items.extend(search_results["items"])
         
+        # --- 기존 맛집 추천 로직 ---
+        elif intent == "맛집 추천":
+            keywords = analysis_data.get("search_keywords")
+            if not keywords or not keywords.get("locations"):
+                if request.current_location:
+                    keywords = keywords or {}
+                    keywords["locations"] = [request.current_location]
+                else:
+                    return RecommendResponse(reply="어디 근처의 맛집을 찾아드릴까요? 지역을 말씀해주시면 더 정확하게 추천해 드릴 수 있어요.")
+            
+            for location in keywords.get("locations", []):
+                for topic in keywords.get("topics", ["맛집"]):
+                    search_query = f"{location} {topic}"
+                    search_results = search_naver_local(search_query)
+                    if search_results and search_results.get("items"):
+                        all_search_items.extend(search_results["items"])
+        
         # --- 최종 답변 생성 ---
-        exclude_list = keywords.get("exclude_list", [])
-        filtered_items = [item for item in all_search_items if item.get('title', '').replace('<b>', '').replace('</b>', '') not in exclude_list]
-        unique_items = list({item['link']: item for item in filtered_items}.values())
+        unique_items = list({item['link']: item for item in all_search_items}.values())
 
         if not unique_items:
-            bot_reply = "죄송합니다, 원하시는 조건의 맛집 정보를 찾지 못했어요. 키워드를 조금 바꿔서 다시 질문해주시겠어요?"
+            # 상세 정보 질문에 대한 답변이 없을 경우
+            if intent == "상세 정보 질문":
+                bot_reply = f"죄송합니다, '{target_restaurant_name}'의 상세 정보를 찾지 못했어요. 가게 이름에 오타가 없는지 확인해주시겠어요?"
+            else:
+                bot_reply = "죄송합니다, 원하시는 조건의 맛집 정보를 찾지 못했어요. 키워드를 조금 바꿔서 다시 질문해주시겠어요?"
         else:
-            context_info = "\n".join([f"- {item.get('title', '').replace('<b>', '').replace('</b>', '')} (주소: {item.get('address', '')}, 카테고리: {item.get('category', '')})" for item in unique_items[:5]])
+            # 네이버 검색 결과의 description 필드까지 포함하여 더 풍부한 컨텍스트를 만듭니다.
+            context_info = "\n".join([f"- 상호명: {item.get('title', '').replace('<b>', '').replace('</b>', '')}, 주소: {item.get('address', '')}, 카테고리: {item.get('category', '')}, 설명: {item.get('description', '').replace('<b>', '').replace('</b>', '')}" for item in unique_items[:5]])
 
             # --- LLM 호출 (2회) ---
             generation_prompt = f"""
-            너는 사용자의 감정까지 고려하여 맞춤형으로 추천하는, 다정다감한 맛집 큐레이터야.
+            너는 사용자의 질문에 대해, 검색된 정보를 바탕으로 친절하고 명확하게 설명하는 맛집 큐레이터야.
+
             [지시사항]
-            1. [사용자 감성]을 반영하여, 따뜻하게 공감하는 첫인사로 답변을 시작해줘.
-            2. '검색된 맛집 정보'를 바탕으로, 질문에 가장 적합한 가게를 최대 5곳까지 선정해서 번호를 매겨 설명해줘.
-            3. 가게 이름에 'DT'가 포함되어 있다면 "(드라이브스루 가능)" 이라고 덧붙여줘.
-            4. 마지막에는 "이 추천이 마음에 드셨으면 좋겠네요! 기분 좋은 하루 보내세요. 😄" 와 같이 다양하고 긍정적인 마무리 인사를 건네줘.
-            5. 절대 마크다운(`**` 등)을 사용하지 마.
+            1. 만약 [사용자 질문]이 '상세 정보'에 대한 것이라면, [검색된 맛집 정보]의 '설명(description)' 필드를 중심으로 사용자가 궁금해하는 정보(메뉴, 영업시간 등)를 찾아 답변해줘.
+            2. 만약 요청한 정보가 '설명' 필드에 없다면, "아쉽게도 제가 가진 정보에는 영업시간이 나와있지 않네요. 방문 전에 직접 확인해보시는 것을 추천드려요." 와 같이 솔직하게 답변해줘.
+            3. 만약 [사용자 질문]이 일반적인 '맛집 추천'이라면, [사용자 감성]을 반영하여 맞춤형으로 가게를 추천해줘.
+            4. 절대 마크다운(`**` 등)을 사용하지 마.
+
             [사용자 감성]: "{sentiment}"
             [사용자 질문]: "{latest_user_message}"
-            [검색된 맛집 정보]: {context_info}
+            [검색된 맛집 정보]:
+            {context_info}
+
             [너의 답변]:
             """
             final_response = model.generate_content(generation_prompt)
