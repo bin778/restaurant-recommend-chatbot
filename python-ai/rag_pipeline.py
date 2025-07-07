@@ -21,7 +21,7 @@ async def process_recommendation_request(
     """
     latest_user_message = conversation_history[-1].text if conversation_history else ""
 
-    # --- 1. 사용자 메시지 필터링 ---
+    # --- 사용자 메시지 필터링 ---
     for keyword in filtered_keywords:
         if keyword.lower() in latest_user_message.lower():
             print(f"🚫 부적절 키워드 '{keyword}' 감지.")
@@ -112,7 +112,7 @@ async def process_recommendation_request(
     if intent == "일반 대화":
         return analysis_data.get("reply", "네, 말씀하세요.")
 
-    # --- 3. 의도에 따른 정보 검색 (Retrieval) ---
+    # --- 의도에 따른 정보 검색 (Retrieval) ---
     context_info = ""
     
     if intent == "상세 정보 질문":
@@ -161,7 +161,7 @@ async def process_recommendation_request(
         unique_items = list({item['link']: item for item in all_search_items}.values())
         context_info = "\n".join([f"- 상호명: {item.get('title', '').replace('<b>', '').replace('</b>', '')}, 주소: {item.get('address', '')}, 카테고리: {item.get('category', '')}" for item in unique_items[:5]])
 
-    # --- 4. 최종 답변 생성 (Generation) ---
+    # --- 최종 답변 생성 (Generation) ---
     if not context_info:
         sentiment_keywords = analysis_data.get("sentiment_keywords")
         if intent == "맛집 추천" and sentiment_keywords:
