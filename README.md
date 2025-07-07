@@ -227,7 +227,7 @@ https://github.com/user-attachments/assets/49c6f086-8a87-43ee-b41a-4a680648c286
     ) ENGINE=InnoDB;
 
     CREATE TABLE IF NOT EXISTS chat_session (
-        `id`         BIGINT       NOT NULL AUTO_INCREMENT,
+        `session_id`         BIGINT       NOT NULL AUTO_INCREMENT,
         `user_id`    BIGINT       NOT NULL,
         `title`      VARCHAR(255) NOT NULL,
         `created_at` TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -236,7 +236,7 @@ https://github.com/user-attachments/assets/49c6f086-8a87-43ee-b41a-4a680648c286
     ) ENGINE=InnoDB;
 
     CREATE TABLE IF NOT EXISTS chat_log (
-        `id`         BIGINT   NOT NULL AUTO_INCREMENT,
+        `log_id`         BIGINT   NOT NULL AUTO_INCREMENT,
         `session_id` BIGINT   NOT NULL,
         `sender`     VARCHAR(50) NOT NULL,
         `message`    TEXT     NOT NULL,
