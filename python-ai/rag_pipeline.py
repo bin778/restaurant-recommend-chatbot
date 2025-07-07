@@ -1,6 +1,6 @@
-import json, os
+import os, json
 import google.generativeai as genai
-from typing import List, Dict, Any, Optional
+from typing import List, Optional
 from pydantic import BaseModel
 from services import search_naver_local, scrape_naver_place_details
 

@@ -1,5 +1,4 @@
-import os
-import json
+import os, json
 import urllib.request
 import requests
 from bs4 import BeautifulSoup
