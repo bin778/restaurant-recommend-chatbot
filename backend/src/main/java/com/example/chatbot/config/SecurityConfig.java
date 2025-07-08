@@ -56,7 +56,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         // 실제 운영 환경에서는 필요한 도메인만 허용하는 것이 안전
-        configuration.setAllowedOrigins(List.of("https://localhost:5173", "https://192.168.0.103:5173", "https://192.168.0.104:5173"));
+        configuration.setAllowedOrigins(List.of("https://192.168.0.103:4173"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);

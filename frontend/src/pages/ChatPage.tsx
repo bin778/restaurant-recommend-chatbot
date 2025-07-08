@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
+import { useSimpleSpeech } from '../hooks/useSimpleSpeech';
 import chatService from '../services/chatService';
 import '../styles/_chat.scss';
 import type { Message } from '../types';
@@ -19,29 +19,21 @@ const ChatPage: React.FC = () => {
 
   const listeningTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  const { transcript, listening, resetTranscript, browserSupportsSpeechRecognition } = useSpeechRecognition();
-
-  const startListening = () => {
-    resetTranscript();
-    SpeechRecognition.startListening({ continuous: false, language: 'ko-KR' });
-    if (listeningTimeoutRef.current) clearTimeout(listeningTimeoutRef.current);
-    listeningTimeoutRef.current = setTimeout(() => {
-      if (listening) SpeechRecognition.stopListening();
-    }, 5000);
-  };
-
-  const stopListening = () => {
-    if (listeningTimeoutRef.current) clearTimeout(listeningTimeoutRef.current);
-    SpeechRecognition.stopListening();
-  };
+  const {
+    transcript,
+    listening,
+    resetTranscript,
+    browserSupportsSpeechRecognition,
+    startListening, // startListening과 stopListening을 직접 가져옴
+    stopListening,
+  } = useSimpleSpeech();
 
   useEffect(() => {
-    if (!listening && transcript) {
-      if (listeningTimeoutRef.current) clearTimeout(listeningTimeoutRef.current);
+    if (transcript) {
       setInputValue(prev => (prev ? prev + ' ' + transcript : transcript));
       resetTranscript();
     }
-  }, [listening, transcript, resetTranscript]);
+  }, [transcript, resetTranscript]);
 
   useEffect(() => {
     return () => {
