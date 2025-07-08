@@ -194,7 +194,11 @@ https://github.com/user-attachments/assets/49c6f086-8a87-43ee-b41a-4a680648c286
 - **원인 분석**: `mkcert`로 생성된 루트 인증 기관(CA)은 명령어를 실행한 로컬 머신에만 자동으로 신뢰하도록 등록됨.
 - **해결 과정**: `rootCA.pem` 파일을 각 클라이언트 기기(아이폰, 윈도우)로 전송 후, OS 설정에 따라 "신뢰할 수 있는 루트 인증 기관"으로 직접 설치 및 등록하여 해결.
 
-<br/>
+#### 7. 배포용 빌드 시 음성 인식 기능 오작동
+
+-   **문제 현상**: 로컬 개발 환경(`npm run dev`)에서는 정상 작동하던 음성 인식 기능이, 프로덕션 빌드 후(`npm run build`) 배포된 서버나 로컬 미리보기(`npm run preview`)에서는 마이크 버튼이 반응하지 않는 현상.
+-   **원인 분석**: Vite의 프로덕션 빌드 과정에서 코드 최적화(압축, 트리 쉐이킹)가 일어나면서, `react-speech-recognition` 라이브러리의 내부 코드가 오작동을 일으키는 호환성 문제.
+-   **해결 과정**: 외부 라이브러리에 대한 의존성을 제거하고, 브라우저의 네이티브 Web Speech API를 직접 사용하는 커스텀 React Hook(`useSimpleSpeech.ts`)을 구현하여 문제를 해결. 이 방식은 빌드 과정의 최적화에 영향을 받지 않아 안정적으로 작동함을 확인.
 
 ---
 
@@ -202,15 +206,14 @@ https://github.com/user-attachments/assets/49c6f086-8a87-43ee-b41a-4a680648c286
 
 ### 8-1. 사전 요구사항
 
-- `Java 17` 이상
-- `Node.js 18.0` 이상
-- `MySQL 8.0` 이상
-- `Python 3.11` 이상
-- `mkcert` (로컬 HTTPS 환경 구성용)
+-   `Java 17` 이상
+-   `Node.js 18.0` 이상
+-   `MySQL 8.0` 이상
+-   `Python 3.11` 이상
 
 ### 8-2. 데이터베이스 및 환경 변수 설정
 
-1.  **데이터베이스 생성**: MySQL에 접속하여 아래 쿼리를 실행, `restaurant_chatbot_db` 데이터베이스와 필요한 모든 테이블을 생성합니다.
+1.  **데이터베이스 생성**: MySQL에 접속하여 아래 쿼리를 실행합니다.
 
     ```sql
     CREATE DATABASE IF NOT EXISTS restaurant_chatbot_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
@@ -220,8 +223,8 @@ https://github.com/user-attachments/assets/49c6f086-8a87-43ee-b41a-4a680648c286
         `user_id`    BIGINT       NOT NULL AUTO_INCREMENT,
         `email`      VARCHAR(255) NOT NULL UNIQUE,
         `password`   VARCHAR(255) NOT NULL,
-        `nickname`   VARCHAR(50) NOT NULL UNIQUE,
-        `role`       VARCHAR(50) NOT NULL,
+        `nickname`   VARCHAR(50)  NOT NULL UNIQUE,
+        `role`       VARCHAR(50)  NOT NULL,
         `created_at` DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
         PRIMARY KEY (`user_id`)
     ) ENGINE=InnoDB;
@@ -230,19 +233,19 @@ https://github.com/user-attachments/assets/49c6f086-8a87-43ee-b41a-4a680648c286
         `session_id` BIGINT       NOT NULL AUTO_INCREMENT,
         `user_id`    BIGINT       NOT NULL,
         `title`      VARCHAR(255) NOT NULL,
-        `created_at` TIMESTAMP     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (`id`),
+        `created_at` TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        PRIMARY KEY (`session_id`),
         FOREIGN KEY (`user_id`) REFERENCES users(`user_id`) ON DELETE CASCADE
     ) ENGINE=InnoDB;
 
     CREATE TABLE IF NOT EXISTS chat_log (
-        `log_id`     BIGINT   NOT NULL AUTO_INCREMENT,
-        `session_id` BIGINT   NOT NULL,
+        `log_id`     BIGINT    NOT NULL AUTO_INCREMENT,
+        `session_id` BIGINT    NOT NULL,
         `sender`     VARCHAR(50) NOT NULL,
-        `message`    TEXT     NOT NULL,
+        `message`    TEXT      NOT NULL,
         `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-        PRIMARY KEY (`id`),
-        FOREIGN KEY (`session_id`) REFERENCES chat_session(`id`) ON DELETE CASCADE
+        PRIMARY KEY (`log_id`),
+        FOREIGN KEY (`session_id`) REFERENCES chat_session(`session_id`) ON DELETE CASCADE
     ) ENGINE=InnoDB;
 
     CREATE TABLE IF NOT EXISTS banned_keyword (
@@ -255,62 +258,37 @@ https://github.com/user-attachments/assets/49c6f086-8a87-43ee-b41a-4a680648c286
     ) ENGINE=InnoDB;
     ```
 
-2.  **환경 변수 설정**: 각 프로젝트 폴더의 설정 파일에 본인의 API 키와 DB 정보를 입력합니다.
+2.  **환경 변수 설정**: 로컬 개발 시에는 각 프로젝트의 설정 파일에, 프로덕션 배포 시에는 서버 내 파일에 본인의 API 키와 DB 정보를 입력합니다.
+    * **Backend**: `backend/src/main/resources/application-local.properties` (로컬용) 또는 `application-production.properties` (배포용)
+    * **Python AI**: `python-ai/.env`
+    * **Frontend**: `frontend/.env.local`
 
-    - **Backend (`backend/src/main/resources/application-local.properties`)**:
+### 8-3. 로컬 서버 실행 방법 (개발용)
 
-      ```properties
-      spring.datasource.username=[YOUR_DB_USERNAME]
-      spring.datasource.password=[YOUR_DB_PASSWORD]
+로컬 PC에서 개발 및 테스트 시 사용하는 방법입니다.
 
-      jwt.secret=[YOUR_JWT_SECRET_KEY]
-      jwt.access-token-validity-in-seconds=1800
-      jwt.refresh-token-validity-in-seconds=604800
+1.  **Backend 서버 실행**: `backend` 폴더에서 `./mvnw spring-boot:run`
+2.  **Frontend 서버 실행**: `frontend` 폴더에서 `npm install` 후 `npm run dev`
+3.  **Python AI 서버 실행**: `python-ai` 폴더에서 가상환경 실행 후 `uvicorn app:app --reload`
+4.  **브라우저 접속**: 터미널에 나타나는 `https://localhost:5173` (또는 로컬 IP) 주소로 접속합니다.
 
-      python.server.url=http://localhost:8000
-      ```
+### 8-4. 프로덕션 배포 방법 (AWS Ubuntu + Nginx)
 
-    - **Python AI (`python-ai/.env`)**:
+AWS EC2(Ubuntu) 환경에 실제 서비스를 배포하는 절차 요약입니다.
 
-      ```
-      GOOGLE_API_KEY=[YOUR_GOOGLE_API_KEY]
-
-      NAVER_CLIENT_ID=[YOUR_NAVER_SEARCH_CLIENT_ID]
-      NAVER_CLIENT_SECRET=[YOUR_NAVER_SEARCH_CLIENT_SECRET]
-      ```
-
-    - **Frontend (`frontend/.env.local`)**:
-      ```
-      VITE_API_BASE_URL=https://<본인-컴퓨터-IP>:8443
-      ```
-
-### 8-3. 서버 실행 방법 (HTTPS)
-
-각 서버는 별도의 터미널에서 실행해야 합니다. SSL 인증서가 없는 경우, 최초 1회 생성 과정이 필요합니다.
-
-1.  **(터미널 1) 백엔드 서버 실행**
-
-    ```bash
-    cd backend
-    ./mvnw spring-boot:run
-    ```
-
-2.  **(터미널 2) 프론트엔드 서버 실행**
-
-    ```bash
-    cd frontend
-    npm install
-    npm run dev
-    ```
-
-3.  **(터미널 3) Python AI 서버 실행**
-    ```bash
-    cd python-ai
-    python -m venv 가상환경이름
-    source 가상환경이름/bin/activate
-    pip install -r requirements.txt
-    uvicorn app:app --host 0.0.0.0 --port 8000 --reload
-    ```
-4.  **브라우저 접속**
-    - 프론트엔드 서버 실행 시 터미널에 나타나는 **`https://<본인-컴퓨터-IP>:5173`** 주소로 접속합니다.
-    - **주의:** `http://localhost:5173` 로 접속하면 기능이 정상 작동하지 않습니다.
+1.  **서버 초기 설정**: `git`, `nginx`, `openjdk-17-jdk`, `nodejs`, `npm`, `mysql-server` 등 필수 패키지를 설치합니다.
+2.  **DB 설정**: `mysql_secure_installation`으로 보안 설정을 하고, 애플리케이션 전용 DB 사용자를 생성하여 최소한의 권한(`SELECT`, `INSERT`, `UPDATE`, `DELETE`)만 부여합니다.
+3.  **프로젝트 빌드**:
+    * Backend: `cd backend && ./mvnw clean package -DskipTests` 명령어로 `.jar` 파일을 생성합니다.
+    * Frontend: `cd frontend && npm run build` 명령어로 `dist` 폴더를 생성합니다.
+4.  **Nginx 설정**: Nginx를 리버스 프록시로 설정합니다.
+    * 사용자의 모든 요청은 `443(HTTPS)` 포트로 받습니다.
+    * `location /` 요청은 프론트엔드(`dist` 폴더)를 보여줍니다.
+    * `location /api/` 요청은 내부적으로 스프링 부트 서버(`http://localhost:8443`)로 전달합니다.
+5.  **백엔드 서비스 실행 (`systemd`)**:
+    * `springboot.service`, `fastapi.service` 파일을 생성하여 백엔드 애플리케이션들이 터미널 종료와 관계없이 계속 실행되도록 등록합니다.
+    * `sudo systemctl enable`, `sudo systemctl start` 명령어로 서비스를 활성화합니다.
+6.  **HTTPS 인증서 발급**:
+    * 개인 도메인을 구매하여 EC2의 IP 주소에 연결합니다. (DNS A 레코드 설정)
+    * `sudo certbot --nginx -d your-domain.com` 명령어로 Let's Encrypt 인증서를 발급받고 Nginx에 자동으로 적용합니다.
+7.  **최종 접속**: `https://your-domain.com`으로 접속하여 서비스를 확인합니다.
