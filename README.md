@@ -32,7 +32,7 @@
 
 ### 1-3. 프로젝트 배포
 
-- [res-chatbot.com](res-chatbot.com)
+- [https://res-chatbot.com](https://res-chatbot.com)
 
 <br/>
 
