@@ -3,7 +3,7 @@ pydantic==2.11.7
 typing-inspection==0.4.1
 typing_extensions==4.14.0
 requests==2.32.4
-urllib3==2.5.0
+urllib3==2.6.0
 jsonpatch==1.33
 jsonpointer==3.0.0
 google-generativeai==0.8.5
