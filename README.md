@@ -32,7 +32,7 @@
 
 ### 1-3. 프로젝트 배포
 
-- [https://res-chatbot.com](https://res-chatbot.com)
+- AWS 프리티어 기간 만료
 
 <br/>
 
